@@ -1,0 +1,7 @@
+#type : 1         #"lowpass"    # Will allow sound under A
+#type : 2         #"highpass"   # Will allow sound above A
+type : 3          #"bandpass"   # Will allow sounds A and B : [A , B]
+#type : 4         #"bandreject" # Will allow sound under A and above B
+
+A : -20   # pitch (deg)
+B :  70   # pitch (deg)

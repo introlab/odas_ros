@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(sound_tracking)
+
+find_package(catkin REQUIRED COMPONENTS
+  message_runtime
+  nav_msgs
+  odas_msgs
+  roscpp
+  std_msgs
+)
+
+catkin_package(
+ INCLUDE_DIRS include
+#  LIBRARIES sound_tracking
+ CATKIN_DEPENDS nav_msgs odas_msgs roscpp std_msgs
+#  DEPENDS system_lib
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+
+## Declare a C++ executable
+add_executable(sound_tracking_node src/sound_tracking.cpp)
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(sound_tracking_node ${catkin_LIBRARIES})
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE)
