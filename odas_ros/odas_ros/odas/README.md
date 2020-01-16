@@ -1,55 +1,6 @@
 # ODAS
 
-ODAS stands for Open embeddeD Audition System. This is a library dedicated to perform sound source localization, tracking, separation and post-filtering. ODAS is coded entirely in C, for more portability, and is optimized to run easily on low-cost embedded hardware. ODAS is free and open source.
-
-## Prerequisites
-
-You will need CMake, GCC and the following external libraries:
-
-FFTW:
-
-```
-sudo apt-get install libfftw3-dev
-```
-
-LibConfig:
-
-```
-sudo apt-get install libconfig-dev
-```
-
-ALSA:
-
-```
-sudo apt-get install libasound2-dev
-```
-
-## Installing
-
-Clone the project:
-
-```
-git clone https://github.com/introlab/odas.git --branch=dev
-```
-
-Create a folder to build the project:
-
-```
-mkdir build
-cd build
-```
-
-Run CMake:
-
-```
-cmake ../
-```
-
-Compile the project:
-
-```
-make
-```
+[ODAS] (https://github.com/introlab/odas/wiki) stands for Open embeddeD Audition System. This is a library dedicated to perform sound source localization, tracking, separation and post-filtering. ODAS is coded entirely in C, for more portability, and is optimized to run easily on low-cost embedded hardware. ODAS is free and open source.
 
 ## Using ODAS with existing microphone arrays
 
