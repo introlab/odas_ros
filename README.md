@@ -1,6 +1,21 @@
 # ODAS -> ROS
 This project is being developped by the [IntRoLab](https://introlab.3it.usherbrooke.ca/mediawiki-introlab/index.php/Main_Page) team.
 
+## Prerequisites
+You will need CMake, GCC and the following external libraries:
+FFTW:
+```
+sudo apt-get install libfftw3-dev
+```
+LibConfig:
+```
+sudo apt-get install libconfig-dev
+```
+ALSA:
+```
+sudo apt-get install libasound2-dev
+```
+
 ## Installation
 First, you need to clone the repository and prepare it for execution.
 ```
@@ -10,7 +25,7 @@ git clone https://github.com/introlab/odas_ros.git
 cd ~/catkin_ws
 catkin_make
 ```
-To get more information on how to use [odas_ros](https://github.com/introlab/odas_ros/tree/redesign_modular/odas_ros) and [soundtracking](https://github.com/introlab/odas_ros/tree/redesign_modular/sound_tracking), more information is given in the README.md of the corresponding folders. 
+To get more information on how to use [odas_ros](https://github.com/introlab/odas_ros/tree/redesign_modular/odas_ros) and [soundtracking](https://github.com/introlab/odas_ros/tree/redesign_modular/sound_tracking), visit the README.md of the corresponding folders. 
 
 ## Repository
 ### odas_ros
