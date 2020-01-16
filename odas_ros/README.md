@@ -1,4 +1,5 @@
 # odas_ros
+Is basically [ODAS](https://github.com/introlab/odas/wiki) with some adaptation (transfering json socket to ros messages) to make it work trought ROS.
 
 ## Get started
 1. Make sure you have the right [configuration file](https://github.com/introlab/odas_ros/tree/redesign_modular/odas_ros/odas_ros/odas/config) selected for your hardware setup. To do this you can change the line in [odas.launch](https://github.com/introlab/odas_ros/blob/redesign_modular/odas_ros/odas_ros/launch/odas.launch) with your own configuration file
