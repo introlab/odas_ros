@@ -5,8 +5,8 @@
 	<arg name="NODE_NAME"			default="sound_tracking"/>
 	
 	<arg name="input_sounds"		default="/sounds/tracked_sources"/>
-	<arg name="input_odom" 		    default="movo/odometry/local_filtered" />
-	<arg name="output_cmd_vel"      default="movo/cmd_vel" />
+	<arg name="input_odom" 		    default="odometry/local_filtered" />
+	<arg name="output_cmd_vel"      default="cmd_vel" />
 	
 	<!--include file="$(find odas_ros)/launch/odas.launch"/-->
 
