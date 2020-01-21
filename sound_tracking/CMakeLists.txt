@@ -19,6 +19,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${odas_msgs_INCLUDE_DIRS}
 )
 
 ## Declare a C++ executable
@@ -26,6 +27,7 @@ add_executable(sound_tracking_node src/sound_tracking.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(sound_tracking_node ${catkin_LIBRARIES})
+
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
