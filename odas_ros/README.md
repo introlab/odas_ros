@@ -10,6 +10,12 @@ Is basically [ODAS](https://github.com/introlab/odas/wiki) with some adaptation 
 ```
 roslaunch odas_ros odas.launch
 ```
+Or,
+```
+roslaunch odas_ros odas.launch config_file:="securbot_pioneer_ros.cfg"
+```
+if you want to launch it with a configuration file different than the default one set up in the previous step.
+
 3. With `rostopic list` you should be able to see this:
 ```
 /rosout
