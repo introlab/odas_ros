@@ -5,6 +5,6 @@
 
     <node pkg="odas_ros" type="odas_core_node" name="odas_core_node" output="screen">
       <!-- set the odas configuration file -->
-      <param name="config_file" value="$(find odas_ros)/odas/config/securbot_turtle_ros.cfg" />      
+      <param name="config_file" value="$(find odas_ros)/odas/config/securbot_pioneer_ros.cfg" />      
     </node>
 </launch>
