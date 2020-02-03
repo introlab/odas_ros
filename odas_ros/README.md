@@ -23,6 +23,28 @@ if you want to launch it with a configuration file different than the default on
 /rosout_agg
 /sounds/tracked_sources
 ```
+
+### Information about the energy of potentials
+It may be interesting to use the energy of the potential detected by the microphone array that is already calculated by odas. To use this information, you simply have to use the launch file odas_E.launch, that starts a modified version of server.py to take the energy information from odas to make it available in ROS.
+
+1. Modify the .cfg file you are using in the ssl section and in potential to format the information as a json socket on the 9002 port. As in this example:
+```
+potential: {
+
+        format = "json";
+
+        interface: {
+            type = "socket";
+            ip = "127.0.0.1";
+            port = 9002;
+        };
+
+```
+2. Choose your .cfg file in the odas_E.launch and then simply launch the file
+```
+roslaunch odas_ros odas_E.launch config_file:="securbot_pioneer_ros_E.cfg"
+```
+
 ### 16SoundUSB
 You can use different sound cards with odas_ros but if you are using [16SoundUSB](https://github.com/introlab/16SoundsUSB) here is how you set it up:
 1. Connect the microphones to the board and the board to your computer (Jetson, Pi, PC, etc.)
