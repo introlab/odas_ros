@@ -1,0 +1,13 @@
+<launch>
+
+    <arg name="config_file"      default="securbot_pioneer_ros_E.cfg" />
+
+    <node pkg="odas_ros" type="server_E.py" name="odas_server" output="screen">
+      <remap from="tracked_sources"	to="/sounds/tracked_sources"/>
+    </node>
+
+    <node pkg="odas_ros" type="odas_core_node" name="odas_core_node" output="screen">
+      <!-- set the odas configuration file -->
+      <param name="config_file" value="$(find odas_ros)/odas/config/$(arg config_file)" />      
+    </node>
+</launch>

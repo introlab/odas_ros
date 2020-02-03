@@ -8,6 +8,7 @@
  * Depending on the sound_tracking monde, the robot will :
  *	THRESHOLD 	: 	Get the speech with most confidence and orientate to it.
  * 	WEIGHT 		:	Calculate a Weight for a speech location and orientate to it
+ *
  *	SLAVE		:	Obey a high-level reasoning
  */
 #include "sound_tracking/sound_tracking.h"

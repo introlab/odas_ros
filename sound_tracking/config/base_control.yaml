@@ -1,4 +1,4 @@
 polarity: 1     # {-1 , 1}
-speed : 0.65       # maxturnspeed >=0
-yellowZone : 20   # ±angle hysteresis before moving
-greenZone : 10     # ±angle tolerance reaching target
+speed : 0.35       # maxturnspeed >=0
+yellowZone : 60   # ±angle hysteresis before moving
+greenZone : 40     # ±angle tolerance reaching target
