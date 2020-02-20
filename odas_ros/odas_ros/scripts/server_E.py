@@ -186,10 +186,7 @@ class odas:
                     #print data
                     msg_ = Msg("speech",message)
                     self.list_msg_speech.append(msg_)
-                if len(test[-1]) > 0:
-                    self.raise_incomplete_Speech=True
-                    self.remaining_Speech.append(test[-1])
-            except ValueError:
+                if len(test[-1]) > 0:8
                 if PRINT : print "odas server not working socket Speech (Take a look at soundusb card id)"
             #self.MsgMatching()
             #msg_.printMsg()
