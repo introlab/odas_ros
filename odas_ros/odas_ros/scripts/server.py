@@ -4,7 +4,7 @@ import socket, sys, json
 from thread import *
 
 # Ros libraries
-import roslib, rospy, rospkg, rospy
+import roslib, rospy, rospkg, rospy, threading
 import std_msgs.msg
 
 # Ros Messages
@@ -159,6 +159,8 @@ class odas:
             if PRINT : print '[*] Connected with ' + addrSpeech[0] + ':' + str(addrSpeech[1])
             start_new_thread(self.socketTracker ,(connTrack,))
             start_new_thread(self.socketSpeech ,(connSpeech,))
+            # for thread in threading.enumerate():
+            #     print(thread.name)
                 
         s.close()
 
