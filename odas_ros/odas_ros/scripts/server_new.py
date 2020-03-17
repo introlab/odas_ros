@@ -11,6 +11,8 @@ import threading
 from odas_msgs.msg import Tracked_source
 from odas_msgs.msg import Tracked_sources
 
+import time
+
 HOST = 'localhost'      # Symbolic name, meaning all available interfaces
 PORTS = [9000, 9002]    # Arbitrary non-privileged port
 PRINT = True
@@ -82,27 +84,30 @@ class Odas:
                 # print self.pot_dict
                 # print self.publish_index
                 msg_ = Tracked_sources()
-                for k in range(len(json.loads(self.track_dict[timestamp]))):
+                track_full = json.loads(self.track_dict[timestamp])
+                pot_full = json.loads(self.pot_dict[timestamp])
+                
+                for k in range(len(track_full)):
                     # When every timestamps are good, we load the information from the msg into a publishable variable
                     source = Tracked_source()
-                    source.x = json.loads(self.track_dict[timestamp])[k]["x"]
-                    source.y = json.loads(self.track_dict[str(self.publish_index)])[k]["y"]
-                    source.z = json.loads(self.track_dict[str(self.publish_index)])[k]["z"]
-                    source.activity = json.loads(self.track_dict[str(self.publish_index)])[k]["activity"]
+                    source.x = track_full[k]["x"]
+                    source.y = track_full[k]["y"]
+                    source.z = track_full[k]["z"]
+                    source.activity = track_full[k]["activity"]
                     
                     # For every source in the pot message, in order of most energy to least
-                    for l in range(len(json.loads(self.pot_dict[timestamp]))):
-                        pot_x = json.loads(self.pot_dict[timestamp])[l]["x"]
-                        pot_y = json.loads(self.pot_dict[timestamp])[l]["y"]
-                        pot_z = json.loads(self.pot_dict[timestamp])[l]["z"]
-                        pot_E = json.loads(self.pot_dict[timestamp])[l]["E"]
-                        
+                    for l in range(len(pot_full)):
+                        pot_x = pot_full[l]["x"]
+                        pot_y = pot_full[l]["y"]
+                        pot_z = pot_full[l]["z"]
+                        pot_E = pot_full[l]["E"]
+
                         # If the source has the same x,y,z value as the one currently being observed, 
                         # we add its E value to the list of energy and erase the last value
                         if (source.x - TOL < pot_x < source.x + TOL) and (source.y - TOL < pot_y < source.y +TOL) and (source.z - TOL < pot_z < source.z + TOL):
                             self.list_E[k][1:] = self.list_E[k][:-1]
                             self.list_E[k][0] = pot_E
-                    
+
                     # The energy published is the average of the last E_MOY_NUM value of E
                     source.E = sum(self.list_E[k])/len(self.list_E[k])
                     
@@ -150,10 +155,6 @@ class Odas:
                     msg_ = Msg("tracker",message)
 
                     self.track_dict.update({msg_.timestamp:msg_.src})
-                    # if "1" in self.pot_dict:
-                    #     print "yash", msg_.timestamp
-                    # print "my track dict is: ", msg_.timestamp, '\n'
-                    # print "my json lod is :", json.loads(self.track_dict[msg_.timestamp])[1]["x"]
 
                 if len(test[-1]) > 0:
                     #print "Oh oh"
@@ -185,10 +186,6 @@ class Odas:
                     msg_ = Msg("pot",message)
                     
                     self.pot_dict.update({msg_.timestamp:msg_.src})
-                    # if msg_.timestamp in self.pot_dict:
-                    #     print "yay", msg_.timestamp
-                    # print "my pot dict is: ", msg_.timestamp, '\n'
-                    # print "my json lod is :", json.loads(self.pot_dict[msg_.timestamp])[1]["x"]
                     
                 if len(test[-1]) > 0:
                     self.raise_incomplete_Pot = True
