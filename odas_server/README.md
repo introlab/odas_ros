@@ -1,4 +1,4 @@
-# odas_ros
+# odas_server
 Is basically [ODAS](https://github.com/introlab/odas/wiki) with some adaptation (transfering json socket to ros messages) to make it work trought ROS.
 
 ## Get started
@@ -9,11 +9,11 @@ Is basically [ODAS](https://github.com/introlab/odas/wiki) with some adaptation 
 ```
 2. Start ROS
 ```
-roslaunch odas_ros odas.launch
+roslaunch odas_server odas_st.launch
 ```
 Or,
 ```
-roslaunch odas_ros odas.launch config_file:="securbot_pioneer_ros.cfg"
+roslaunch odas_server odas.launch config_file:="securbot_pioneer_ros.cfg"
 ```
 if you want to launch it with a configuration file different than the default one set up in the previous step.
 
@@ -24,7 +24,7 @@ if you want to launch it with a configuration file different than the default on
 /sounds/tracked_sources
 ```
 
-### Information about the energy of potentials
+### Information about SSL and SST together
 It may be interesting to use the energy of the potential detected by the microphone array that is already calculated by odas. To use this information, you simply have to use the launch file odas_E.launch, that starts a modified version of server.py to take the energy information from odas to make it available in ROS.
 
 1. Modify the .cfg file you are using in the ssl section and in potential to format the information as a json socket on the 9002 port. As in this example:
@@ -42,8 +42,10 @@ potential: {
 ```
 2. Choose your .cfg file in the odas_E.launch and then simply launch the file
 ```
-roslaunch odas_ros odas_E.launch config_file:="securbot_pioneer_ros_E.cfg"
+roslaunch odas_ros odas_lt_sync.launch config_file:="securbot_pioneer_ros_E.cfg"
 ```
+For single utilisation of Sound Source Localization (SSL) or Sound Source Tracking (SST) launch files with servers are provided. Specific .cfg file are necessary.
+
 
 ### 16SoundUSB
 You can use different sound cards with odas_ros but if you are using [16SoundUSB](https://github.com/introlab/16SoundsUSB) here is how you set it up:
@@ -54,18 +56,12 @@ You can use different sound cards with odas_ros but if you are using [16SoundUSB
 5. It should look like this:
 ![micTest](res/audacity_micTest.png)
 
-## Repository
-There are two folders, odas_ros and odas_msgs, which are separated for modularity purposes.
-
-## odas_msgs
-odsa_msgs contains the files required to use odas's custom ROS messages that are used by odas_ros and sound_tracking.
-Theses messages contains the position of a source (x,y,z), if the source is talking, and the probability of activity.
 
 ## odas_ros
 odas_ros is the package containing the scripts and nodes to use odas_core_node and server.py to run the odas library.
 
 ### launch
-This is where the ROS launch files are located.
+This is where the ROS launch files are located to run the different servers with the odas_core..
 
 ### odas
 This folder contains the programs of the odas library.
