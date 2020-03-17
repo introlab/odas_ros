@@ -13,6 +13,13 @@ add_message_files(
   FILES
   Tracked_source.msg
   Tracked_sources.msg
+  DoA.msg
+  DoAs.msg
+  UniqueSSL.msg
+  Ssl.msg
+  UniqueSST.msg
+  Sst.msg
+
 )
 
 generate_messages(

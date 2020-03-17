@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(odas_ros)
+project(odas_server)
 
 
 find_package(catkin REQUIRED COMPONENTS

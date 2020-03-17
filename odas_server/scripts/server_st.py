@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Python libs
+
+# SERVER FILE MADE FOR SOUND TRACKING. NOT OPTIMIZED.
 import socket, sys, json
 from thread import *
 

@@ -8,8 +8,7 @@ import roslib, rospy, rospkg, rospy
 import std_msgs.msg
 import threading
 # Ros Messages
-from odas_msgs.msg import Tracked_source
-from odas_msgs.msg import Tracked_sources
+from odas_msgs.msg import DoA, DoAs
 
 import time
 
@@ -39,7 +38,7 @@ class Odas:
         '''Initialize ros publisher, ros subscriber'''
         # topic where we publish
         rospy.init_node('odas_driver', anonymous=True, disable_signals=True)
-        self.tracked_pub = rospy.Publisher("/tracked_sources", Tracked_sources, queue_size=1)
+        self.tracked_pub = rospy.Publisher("/DoA", DoAs, queue_size=1)
         # important variables
         self.list_socket = []
         self.nbr_socket = 2
@@ -83,13 +82,13 @@ class Odas:
                 #print 'okayy'
                 # print self.pot_dict
                 # print self.publish_index
-                msg_ = Tracked_sources()
+                msg_ = DoAs()
                 track_full = json.loads(self.track_dict[timestamp])
                 pot_full = json.loads(self.pot_dict[timestamp])
                 
                 for k in range(len(track_full)):
                     # When every timestamps are good, we load the information from the msg into a publishable variable
-                    source = Tracked_source()
+                    source = DoA()
                     source.x = track_full[k]["x"]
                     source.y = track_full[k]["y"]
                     source.z = track_full[k]["z"]
