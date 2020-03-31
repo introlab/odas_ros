@@ -68,7 +68,7 @@ class Odas:
             data = conn.recv(8192)
             test = data.split(']\n}\n')
             #print len(test[-1]), len(test[0])
-            #print 'my datas are : ', data
+            print 'my datas are : ', data
             try:
                 if self.raise_incomplete_Tracker:
                     #print "oh oh i will solve dis"
