@@ -68,7 +68,7 @@ class Odas:
             data = conn.recv(8192)
             test = data.split(']\n}\n')
             #print len(test[-1]), len(test[0])
-            print 'my datas are : ', data
+            #print 'my datas are : ', data
             try:
                 if self.raise_incomplete_Tracker:
                     #print "oh oh i will solve dis"
@@ -98,7 +98,9 @@ class Odas:
 
                     h = std_msgs.msg.Header()
                     h.stamp = rospy.Time.now()
-                    msg_.header = h
+                    #print msg.timestamp
+		    h.seq = msg.timestamp 
+		    msg_.header = h
                     self.tracked_pub.publish(msg_)
 
                     self.track_dict.pop(msg.timestamp)
