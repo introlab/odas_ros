@@ -42,7 +42,7 @@ potential: {
 ```
 2. Choose your .cfg file in the odas_E.launch and then simply launch the file
 ```
-roslaunch odas_ros odas_lt_sync.launch config_file:="securbot_pioneer_ros_E.cfg"
+roslaunch odas_server odas_lt_sync.launch config_file:="securbot_pioneer_ros_E.cfg"
 ```
 For single utilisation of Sound Source Localization (SSL) or Sound Source Tracking (SST) launch files with servers are provided. Specific .cfg file are necessary.
 

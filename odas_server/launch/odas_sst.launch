@@ -1,6 +1,7 @@
 <launch>
     <!-- ODAS LAUNCH FILE FOR SSL AND SST SYNCHRONISATION -->
-    <arg name="config_file"      default="securbot_turtle_ros_sst.cfg" />
+    <arg name="robot"           default="pioneer" />
+    <arg name="config_file"      default="securbot_$(arg robot)_ros_sst.cfg" />
 
     <node pkg="odas_server" type="server_sst.py" name="odas_server" output="screen">
       <remap from="/SST"	to="/ma1/SST"/>

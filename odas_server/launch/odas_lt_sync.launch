@@ -1,6 +1,7 @@
 <launch>
     <!-- ODAS LAUNCH FILE FOR SSL AND SST SYNCHRONISATION -->
-    <arg name="config_file"      default="securbot_pioneer_ros_E.cfg" />
+    <arg name="robot"           default="pioneer" />
+    <arg name="config_file"      default="securbot_$(arg robot)_ros_E.cfg" />
 
     <node pkg="odas_server" type="server_lt_sync.py" name="odas_server" output="screen">
       <remap from="tracked_sources"	to="/sounds/tracked_sources"/>
