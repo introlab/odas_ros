@@ -99,8 +99,8 @@ class Odas:
                     h = std_msgs.msg.Header()
                     h.stamp = rospy.Time.now()
                     #print msg.timestamp
-		    h.seq = msg.timestamp 
-		    msg_.header = h
+                    h.seq = msg.timestamp 
+                    msg_.header = h
                     self.tracked_pub.publish(msg_)
 
                     self.track_dict.pop(msg.timestamp)

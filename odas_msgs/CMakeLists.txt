@@ -19,6 +19,8 @@ add_message_files(
   Ssl.msg
   UniqueSST.msg
   Sst.msg
+  UniqueSSS.msg
+  Sss.msg
 
 )
 
