@@ -3,6 +3,7 @@
 import socket, sys, json
 from thread import *
 import rospy
+import numpy as np
 
 # Ros libraries
 import roslib, rospy, rospkg, rospy
@@ -17,20 +18,7 @@ HOST = 'localhost'      # Symbolic name, meaning all available interfaces
 PORTS = [10000]    # Arbitrary non-privileged port
 PRINT = True
 NUM_SOURCE = 4
-TOL = 0.05
-
-class Msg:
-    #Class containning the information of the messages read on the sockets json sent from odas
-    def __init__(self, name, data):
-        self.name = name
-        self.data = json.loads(data)
-        self.timestamp = json.dumps(self.data["timeStamp"])
-        self.src = json.dumps(self.data["src"])
-    
-    def printMsg(self):
-        if PRINT : 
-            print "RX %s = \nTimeStamp = %s,\nsrc = %s" %(self.name, self.timestamp, json.dumps(self.src))
-        
+TOL = 0.05      
 
 class Odas:
 
@@ -59,56 +47,26 @@ class Odas:
     # # Function that verifies if the json message is complete or incomplete
                 
 
-
     def socketSSS(self, conn):
-    # Function receiving information from the odas tracker socket and making sure it gets into a 
-    # Msg class without being corrupted by the reading of the socket.
-        freq = 20.0
-        rate = rospy.Rate(freq)
-        #data = bytearray(8196)
+    # Function receiving information from the odas sss
         while not rospy.is_shutdown():
             start_time = time.time()
-            data = conn.recv(8192) # recive in string, not used anymore
-            #conn.recv_into(data) #-> TODO brise car UniqueSSS est array now 
-            #for index in range(len(data)):
-            #    print 'my data' + str(index) + 'is: ', data[index]#.encode('hex')       
+            data = conn.recv(8192) # recive in string      
             #print 'my datas are : ', data.encode('hex')
-            n = 32/8 # odas raw size / python str size
-            channe1 = []
-            channe2 = []
-            channe3 = []
-            channe4 = []
-            data_by_channel = [channe1, channe2, channe3, channe4] 
-            index_channel = 0
+
+            nbr_channel = 4 
+            dt = np.dtype('<i4')
             try:
                 msg_ = Sss()
                 source = UniqueSSS()
+                data_32 = np.frombuffer(data, dtype=dt)
+                data_block = data_32.reshape((len(data_32)/nbr_channel,nbr_channel))
+                print 'my datas are : ', data_block
 
-                for i in range(0, len(data), n):
-                    data_now = data[i:i+n]
-                    data_by_channel[index_channel].append(data_now.encode('hex'))
+                for i in range(nbr_channel):
+                    source.sss_channels[i].raw_data = data_block[:,i]
 
-                    if(index_channel == 0):
-                        source.sss_channel_1 = data_now
-
-                    elif(index_channel == 1):
-                        source.sss_channel_2 = data_now
-
-                    elif(index_channel == 2):
-                        source.sss_channel_3 = data_now
-
-                    elif(index_channel >= 3):
-                        source.sss_channel_4 = data_now
-                        msg_.sources.append(source)
-                        index_channel = -1
-
-                    index_channel = index_channel + 1                        
-
-                print 'my channel_1 ('+ str(len(data_by_channel[0])) +') is : ', data_by_channel[0]
-                print 'my channel_2 ('+ str(len(data_by_channel[1])) +') is : ', data_by_channel[1]
-                print 'my channel_3 ('+ str(len(data_by_channel[2])) +') is : ', data_by_channel[2]
-                print 'my channel_4 ('+ str(len(data_by_channel[3])) +') is : ', data_by_channel[3]
-                
+                msg_.sources.append(source)
                 h = std_msgs.msg.Header()
                 h.stamp = rospy.Time.now()
                 #print msg.timestamp
@@ -118,17 +76,10 @@ class Odas:
                 self.sss_pub.publish(msg_)
 
             except ValueError:
-                if PRINT : print "odas server not working socket Tracker(Take a look at soundusb card id)"
-            #msg_.printMsg()
+                if PRINT : print "odas server not working socket SSS(Take a look at soundusb card id)"
             end_time = time.time()
-            print 'it took ' + str(end_time-start_time) + ' to run the loop'
-            if((end_time-start_time) <= (1.0/freq)):
-                print 'succes'
-            else:
-                print 'fail'
-            rate.sleep()
+            #print 'it took ' + str(end_time-start_time) + ' to run the loop'
         conn.close()
-
     
 
     def spin(self):

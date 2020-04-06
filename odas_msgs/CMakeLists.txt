@@ -21,6 +21,7 @@ add_message_files(
   Sst.msg
   UniqueSSS.msg
   Sss.msg
+  raw_data.msg
 
 )
 

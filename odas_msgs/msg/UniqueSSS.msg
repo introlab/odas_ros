@@ -1,4 +1,1 @@
-string sss_channel_1
-string sss_channel_2
-string sss_channel_3
-string sss_channel_4
+odas_msgs/raw_data[4] sss_channels
