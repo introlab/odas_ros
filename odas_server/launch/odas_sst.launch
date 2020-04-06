@@ -4,7 +4,7 @@
     <arg name="config_file"      default="securbot_$(arg robot)_ros_sst.cfg" />
 
     <node pkg="odas_server" type="server_sst.py" name="odas_server" output="screen">
-      <remap from="/SST"	to="/ma1/SST"/>
+      <remap from="/SST"	to="/$(arg robot)/SST"/>
     </node>
 
     <node pkg="odas_server" type="odas_core_node" name="odas_core_node" output="screen">
