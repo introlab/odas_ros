@@ -9,7 +9,6 @@ import numpy as np
 import roslib, rospy, rospkg, rospy
 import std_msgs.msg
 import threading
-# Ros Messages (todo -> creer odas_msgs SSS)
 from odas_msgs.msg import UniqueSSS, Sss
 
 import time
@@ -43,9 +42,6 @@ class Odas:
         self.list_socket.append(s)
         if PRINT : print "[*] Server listening on %s %d" %(HOST, PORTS[0])
 
-    # def msgCompleter(self):
-    # # Function that verifies if the json message is complete or incomplete
-                
 
     def socketSSS(self, conn):
     # Function receiving information from the odas sss
@@ -61,7 +57,7 @@ class Odas:
                 source = UniqueSSS()
                 data_32 = np.frombuffer(data, dtype=dt)
                 data_block = data_32.reshape((len(data_32)/nbr_channel,nbr_channel))
-                print 'my datas are : ', data_block
+                #print 'my datas are : ', data_block
 
                 for i in range(nbr_channel):
                     source.sss_channels[i].raw_data = data_block[:,i]
@@ -84,9 +80,9 @@ class Odas:
 
     def spin(self):
         while not rospy.is_shutdown():
-            connTrack, addrTrack = self.list_socket[0].accept()
-            if PRINT : print '[*] Connected with ' + addrTrack[0] + ':' + str(addrTrack[1])
-            self.socketSSS(connTrack)
+            connSSS, addrSSS = self.list_socket[0].accept()
+            if PRINT : print '[*] Connected with ' + addrSSS[0] + ':' + str(addrSSS[1])
+            self.socketSSS(connSSS)
         s.close()
 
 def main(args):
