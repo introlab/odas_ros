@@ -28,11 +28,11 @@ catkin_make
 To get more information on how to use [odas_ros](https://github.com/introlab/odas_ros/tree/redesign_modular/odas_ros) and [soundtracking](https://github.com/introlab/odas_ros/tree/redesign_modular/sound_tracking), visit the README.md of the corresponding folders. 
 
 ## Repository
-### odas_server
-Contains everything you need to use [odas](https://github.com/introlab/odas) through a [ROS](https://www.ros.org/) architecture.
-
 ### odas_msgs
 Contains the message declaration used by odas_server and sound_tracking.
+
+### odas_server
+Contains everything you need to use [odas](https://github.com/introlab/odas) through a [ROS](https://www.ros.org/) architecture.
 
 ### sound_traking
 Uses odas_ros's nodes to calculate the [twist](http://docs.ros.org/melodic/api/geometry_msgs/html/msg/Twist.html) command for a robot to orient itself toward the loudest speech source.
