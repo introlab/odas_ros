@@ -64,11 +64,15 @@ class Odas:
     def socketTracker(self, conn):
     # Function receiving information from the odas tracker socket and making sure it gets into a 
     # Msg class without being corrupted by the reading of the socket.
-        while not rospy.is_shutdown():
+	counter = 0        
+	while not rospy.is_shutdown():
             data = conn.recv(8192)
             test = data.split(']\n}\n')
             #print len(test[-1]), len(test[0])
-            #print 'my datas are : ', data
+	    print 'my datas are : ', len(data)
+      	    if len(data) == 0:
+		print "=============Ahhhhhh you lose=========="
+		break
             try:
                 if self.raise_incomplete_Tracker:
                     #print "oh oh i will solve dis"
@@ -114,18 +118,17 @@ class Odas:
                     #print 'what is remaining: ', self.remaining_Tracker
             except ValueError:
                 if PRINT : print "odas server not working socket Tracker(Take a look at soundusb card id)"
-            #msg_.printMsg()
+        #msg_.printMsg()
             
         conn.close()
 
     
 
     def spin(self):
-        while not rospy.is_shutdown():
-            connTrack, addrTrack = self.list_socket[0].accept()
-            if PRINT : print '[*] Connected with ' + addrTrack[0] + ':' + str(addrTrack[1])
-            self.socketTracker(connTrack)
-        s.close()
+  	connTrack, addrTrack = self.list_socket[0].accept()
+    	if PRINT : print '[*] Connected with ' + addrTrack[0] + ':' + str(addrTrack[1])
+    	self.socketTracker(connTrack)
+      
 
 def main(args):
     '''Initializes and cleanup ros node'''
