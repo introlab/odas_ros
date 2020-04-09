@@ -44,6 +44,8 @@ set(odas_shared_srcs
 
 ## Declare a C++ executable
 add_executable(odas_core_node src/odas_core_node.cpp ${odas_shared_srcs})
+add_executable(pioneer_odas_core_node src/pioneer_odas_core_node.cpp ${odas_shared_srcs})
+add_executable(turtle_odas_core_node src/turtle_odas_core_node.cpp ${odas_shared_srcs})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(odas_core_node
