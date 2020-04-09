@@ -52,5 +52,13 @@ target_link_libraries(odas_core_node
    ${catkin_LIBRARIES}
    odas
 )
+target_link_libraries(pioneer_odas_core_node
+   ${catkin_LIBRARIES}
+   odas
+)
+target_link_libraries(turtle_odas_core_node
+   ${catkin_LIBRARIES}
+   odas
+)
 
 
