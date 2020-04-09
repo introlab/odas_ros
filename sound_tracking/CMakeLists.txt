@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES sound_tracking
- CATKIN_DEPENDS message_runtime nav_msgs odas_msgs roscpp std_msgs
+ CATKIN_DEPENDS nav_msgs odas_msgs roscpp std_msgs
 #  DEPENDS system_lib
 )
 
