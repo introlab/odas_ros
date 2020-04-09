@@ -7,8 +7,9 @@
       <remap from="/SST"	to="/$(arg robot)/SST"/>
     </node>
 
-    <node pkg="odas_server" type="odas_core_node" name="$(arg robot)_odas_core_node" output="screen">
+    <node pkg="odas_server" type="$(arg robot)_odas_core_node" name="$(arg robot)_odas_core_node" output="screen">
       <!-- set the odas configuration file -->
-      <param name="config_file" value="$(find odas_server)/odas/config/$(arg config_file)" />      
+      <param name="config_file" value="$(find odas_server)/odas/config/$(arg config_file)" />
+      <param name="robot" value = "$(arg robot)" />      
     </node>
 </launch>
