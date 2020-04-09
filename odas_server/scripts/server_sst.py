@@ -69,7 +69,7 @@ class Odas:
             data = conn.recv(8192)
             test = data.split(']\n}\n')
             #print len(test[-1]), len(test[0])
-	    print 'my datas are : ', len(data)
+	    #print 'my datas are : ', len(data)
       	    if len(data) == 0:
 		print "=============Ahhhhhh you lose=========="
 		break
