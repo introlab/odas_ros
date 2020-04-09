@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES sound_tracking
+ # LIBRARIES sound_tracking
  CATKIN_DEPENDS nav_msgs odas_msgs roscpp std_msgs
  # DEPENDS system_lib
 )
@@ -21,6 +21,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${odas_msgs_INCLUDE_DIRS}
 )
+
+# Add cmake target dependencies of the library
+add_dependencies(odas_msgs_generate_messages_py ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 add_executable(sound_tracking_node src/sound_tracking.cpp)
