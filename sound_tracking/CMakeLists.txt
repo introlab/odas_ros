@@ -24,6 +24,7 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(sound_tracking_node src/sound_tracking.cpp)
+add_dependencies(odas_msgs_generate_messages ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(sound_tracking_node ${catkin_LIBRARIES})
