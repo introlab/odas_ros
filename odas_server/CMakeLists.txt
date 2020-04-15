@@ -60,5 +60,9 @@ target_link_libraries(turtle_odas_core_node
    ${catkin_LIBRARIES}
    odas
 )
+target_link_libraries(ohmnilabs_odas_core_node
+   ${catkin_LIBRARIES}
+   odas
+)
 
 
