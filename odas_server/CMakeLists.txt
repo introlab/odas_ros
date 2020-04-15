@@ -46,7 +46,6 @@ set(odas_shared_srcs
 add_executable(odas_core_node src/odas_core_node.cpp ${odas_shared_srcs})
 add_executable(pioneer_odas_core_node src/pioneer_odas_core_node.cpp ${odas_shared_srcs})
 add_executable(turtle_odas_core_node src/turtle_odas_core_node.cpp ${odas_shared_srcs})
-add_executable(ohmnilabs_odas_core_node src/ohmnilabs_odas_core_node.cpp ${odas_shared_srcs})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(odas_core_node
@@ -58,10 +57,6 @@ target_link_libraries(pioneer_odas_core_node
    odas
 )
 target_link_libraries(turtle_odas_core_node
-   ${catkin_LIBRARIES}
-   odas
-)
-target_link_libraries(ohmnilabs_odas_core_node
    ${catkin_LIBRARIES}
    odas
 )
