@@ -29,7 +29,6 @@ class Odas:
         # important variables
         self.list_socket = []
         self.nbr_socket = 1
-        self.time_stamp_HARD = 0
 
 
         self.raise_incomplete_Tracker = False
@@ -66,8 +65,6 @@ class Odas:
                 h = std_msgs.msg.Header()
                 h.stamp = rospy.Time.now()
                 #print msg.timestamp
-                h.frame_id = str(self.time_stamp_HARD) #msg.timestamp 
-                self.time_stamp_HARD = self.time_stamp_HARD + 1
                 msg_.header = h
                 self.sss_pub.publish(msg_)
 

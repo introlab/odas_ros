@@ -1,0 +1,15 @@
+<launch>
+    <!-- ODAS LAUNCH FILE FOR SSL AND SST SYNCHRONISATION -->
+    <arg name="robot"           default="ohmnilabs" />
+    <arg name="config_file"      default="$(arg robot).cfg" />
+
+    <node pkg="odas_server" type="server_sst.py" name="odas_server" output="screen" required="true">
+      <remap from="/SST"	to="/$(arg robot)/SST"/>
+    </node>
+
+    <node pkg="odas_server" type="odas_core_node" name="odas_core_node" output="screen">
+      <!-- set the odas configuration file -->
+      <param name="config_file" value="/home/ohmnidev/test_ohmnilab/$(arg config_file)" />
+      <param name="robot" value = "$(arg robot)" />      
+    </node>
+</launch>
