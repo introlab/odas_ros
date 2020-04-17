@@ -29,7 +29,7 @@ To get more information on how to use [odas_ros](https://github.com/introlab/oda
 
 ## Repository
 ### odas_msgs
-Contains the message declaration used by odas_server and sound_tracking.
+Contains the [message](https://github.com/introlab/odas_ros/tree/redesign_modular_v2/odas_msgs/msg) declaration used by odas_server and sound_tracking. 
 
 ### odas_server
 Contains everything you need to use [odas](https://github.com/introlab/odas) through a [ROS](https://www.ros.org/) architecture.
