@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Python libs
 import socket, sys, json
-from thread import *
+from _thread import *
 
 # Ros libraries
 import roslib, rospy, rospkg, rospy
@@ -28,7 +28,7 @@ class Msg:
     
     def printMsg(self):
         if PRINT : 
-            print "RX %s = \nTimeStamp = %s,\nsrc = %s" %(self.name, self.timestamp, json.dumps(self.src))
+            print("RX %s = \nTimeStamp = %s,\nsrc = %s" %(self.name, self.timestamp, json.dumps(self.src)))
         
 
 class Odas:
@@ -54,7 +54,7 @@ class Odas:
         s.bind((HOST, PORTS[0]))
         s.listen(5)
         self.list_socket.append(s)
-        if PRINT : print "[*] Server listening on %s %d" %(HOST, PORTS[0])
+        if PRINT : print("[*] Server listening on %s %d" %(HOST, PORTS[0]))
 
     # def msgCompleter(self):
     # # Function that verifies if the json message is complete or incomplete
@@ -66,12 +66,9 @@ class Odas:
     # Msg class without being corrupted by the reading of the socket.
 	counter = 0        
 	while not rospy.is_shutdown():
-            data = conn.recv(8192)
+            data = conn.recv(8192).decode("utf-8")
             test = data.split(']\n}\n')
-            #print len(test[-1]), len(test[0])
-	    #print 'my datas are : ', len(data)
       	    if len(data) == 0:
-		print "=============Ahhhhhh you lose=========="
 		break
             try:
                 if self.raise_incomplete_Tracker:
@@ -102,7 +99,6 @@ class Odas:
 
                     h = std_msgs.msg.Header()
                     h.stamp = rospy.Time.now()
-                    #print msg.timestamp
                     h.seq = msg.timestamp 
                     msg_.header = h
                     self.tracked_pub.publish(msg_)
@@ -112,21 +108,16 @@ class Odas:
                     
 
                 if len(test[-1]) > 0:
-                    #print "Oh oh"
                     self.raise_incomplete_Tracker = True
                     self.remaining_Tracker.append(test[-1])
-                    #print 'what is remaining: ', self.remaining_Tracker
             except ValueError:
-                if PRINT : print "odas server not working socket Tracker(Take a look at soundusb card id)"
-        #msg_.printMsg()
+                if PRINT : print("odas server not working socket Tracker(Take a look at soundusb card id)")
             
         conn.close()
 
-    
-
     def spin(self):
   	connTrack, addrTrack = self.list_socket[0].accept()
-    	if PRINT : print '[*] Connected with ' + addrTrack[0] + ':' + str(addrTrack[1])
+    	if PRINT : print('[*] Connected with ' + addrTrack[0] + ':' + str(addrTrack[1]))
     	self.socketTracker(connTrack)
       
 
@@ -136,9 +127,9 @@ def main(args):
     try:
         odas_.spin()
     except KeyboardInterrupt:
-        print "Shutting down ROS ODAS driver"
+        print("Shutting down ROS ODAS driver")
 
 if __name__ == '__main__':
-    if PRINT : print "Hello World!\n"
+    if PRINT : print("Hello World!\n")
     main(sys.argv)
-    if PRINT : print "GoodBye World!\n"
+    if PRINT : print("GoodBye World!\n")

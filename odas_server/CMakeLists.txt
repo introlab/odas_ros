@@ -32,14 +32,6 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/odas/demo
 )
 
-## in contrast to setup.py, you can choose the destination
-catkin_install_python(PROGRAMS
-scripts/server_E.py
-scripts/server.py
-scripts/server_new.py
-DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
 #Reuse base client demo files
 set(odas_shared_srcs
     odas/demo/configs.c

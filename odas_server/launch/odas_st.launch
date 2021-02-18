@@ -1,13 +1,14 @@
 <launch>
-  <!-- ODAS LAUNCh FILE USED FOR SOUND TRACKING MODULE-->
-    <arg name="config_file"      default="securbot_pioneer_ros.cfg" />
+  <!-- ODAS LAUNCH FILE USED FOR SOUND TRACKING MODULE-->
+  
+    <arg name="config_file"      default="config_movo_2021.cfg" />
 
     <node pkg="odas_server" type="server_st.py" name="odas_server" output="screen">
       <remap from="tracked_sources"	to="/sounds/tracked_sources"/>
     </node>
 
     <node pkg="odas_server" type="odas_core_node" name="odas_core_node" output="screen">
-      <!-- set the odas configuration file -->
       <param name="config_file" value="$(find odas_server)/odas/config/$(arg config_file)" />      
     </node>
+
 </launch>
