@@ -41,7 +41,7 @@ git submodule update --init --recursive
 ```
 
 ## Hardware configuration
-For ODAS to locate and track sound sources, it needs to know what is the physical configuration of all microphones. There is a file (`configuration.cfg`) that is used to provide ODAS with all the information it needs. You will need the position and direction of each microphones. See [ODAS Configuration](https://github.com/introlab/odas/wiki/Configuration) for details on each part of the file. 
+For ODAS to locate and track sound sources, it needs to be configured. There is a file (`configuration.cfg`) that is used to provide ODAS with all the information it needs. You will need the position and direction of each microphones. See [ODAS Configuration](https://github.com/introlab/odas/wiki/Configuration) for details.
 
 Here are the important steps:
 
@@ -64,6 +64,23 @@ card 1: 8_sounds_usb [16SoundsUSB Audio 2.0], device 0: USB Audio [USB Audio]
   Subdevice #0: subdevice #0
 ```
 In this case, the card number is 1 and the device is 0 for the 16SoundsUSB audio card. So the device name should be: `"hw:CARD=1,DEV=0";`.
+
+### Mapping 
+Depending on your configuration, you will need to map the microphones from the soundcard to the software. If you wish to use all microphones, then you can map all of them. For example, if there is 16 microphones and wish to use them all:
+```
+mapping:
+{
+    map: (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+};
+```
+But if only certain microphones should be used, they can be mapped. For example, if I only wish to use microphones 1 to 4 and 6 to 10 and 12:
+```
+mapping:
+{
+    map: (1,2,3,4,6,7,8,9,10,12);
+};
+```
+They will be mapped to microphones 1 to 10.
 
 ### Microphone configuration
 For ODAS to precisely locate and track a sound source, it needs to know precisely the microphone position. The frame of reference used to measure the microphones position will end up being the one used for the sound tracking. Here is an example of a microphone configuration. It is easier if the reference point is located in the center of the microphones.
