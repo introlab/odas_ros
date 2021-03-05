@@ -1,5 +1,5 @@
 <launch>
-    <arg name="configuration_path" default="$(find odas_ros)/configuration.cfg"/>
+    <arg name="configuration_path" default="$(find odas_ros)/config/configuration.cfg"/>
 
     <node pkg="odas_ros" type="odas_core_node" name="odas_core_node">
         <param name="configuration_path" value="$(arg configuration_path)"/>
