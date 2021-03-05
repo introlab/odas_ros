@@ -1,0 +1,14 @@
+<launch>
+    <arg name="configuration_path" default="$(find odas_ros)/configuration.cfg"/>
+
+    <node pkg="odas_ros" type="odas_core_node" name="odas_core_node">
+        <param name="configuration_path" value="$(arg configuration_path)"/>
+    </node>
+    <node pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
+        <param name="configuration_path" value="$(arg configuration_path)"/>
+        <param name="sst_frame_id" value="odas"/>
+
+        <remap from="sss" to="audio_signed_16_44100"/>
+        <remap from="sst" to="audio_sst"/>
+    </node>
+</launch>
