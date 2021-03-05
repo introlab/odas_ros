@@ -9,6 +9,8 @@ You will need CMake, GCC and the following external libraries:
 sudo apt-get install cmake gcc libfftw3-dev libconfig-dev libasound2-dev
 ```
 
+ODAS ROS uses the audio utilities from [AudioUtils](https://github.com/introlab/audio_utils)
+
 ## Installation
 First, you need to clone the repository and prepare it for execution. Clone it in the `src` directory of your catkin workspace.
 ```
