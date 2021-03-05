@@ -22,7 +22,7 @@ For ODAS to locate and track sound sources, it needs to know what is the physica
 Here are the important steps:
 
 ### Sound card configuration
-At this part of the configuration file, you need to set the correct card and dev.
+At this part of the configuration file, you need to set the correct card and device number.
 ```
 # Input with raw signal from microphones
     interface: {    #"arecord -l" OR "aplay --list-devices" to see the devices
@@ -41,3 +41,18 @@ card 1: 8_sounds_usb [16SoundsUSB Audio 2.0], device 0: USB Audio [USB Audio]
 ```
 In this case, the card number is 1 and the device is 0 for the 16SoundsUSB audio card. So the device name should be: `"hw:CARD=1,DEV=0";`.
 
+### Microphone configuration
+For ODAS to precisely locate and track a sound source, it needs to know precisely the microphone position. The frame of reference used to measure the microphones position will end up being the one used for the sound tracking. Here is an example of a microphone configuration. It is easier if the reference point is located in the center of the microphones.
+```
+# Microphone 1 #TODO
+        {
+            mu = ( 0.122376, 0.08144437, 0.042 );
+            sigma2 = ( +1E-6, 0.0, 0.0, 0.0, +1E-6, 0.0, 0.0, 0.0, +1E-6 );
+            direction = ( -0.08144, -0.12238, 0.0 );
+            angle = ( 80.0, 100.0 );
+        },
+```
+
+For Microphone 1, `mu` is the position in x, y and z from the reference point. `sigma2` is the position variance in `xx, xy xz, yx, yy, yz, zx, zy, zz` this setting should mainly remain untouched. The `direction` parameter is the direction of the microphone. It should be a unit vector pointing in the direction that the microphone is pointing relative to the reference frame. The `angle` parameter is the maximum angle at which gain is 1 and minimum angle at which gain is 0. 
+
+ODAS can't provide the tracked object distance but a coordinate in a unit sphere.
