@@ -20,7 +20,7 @@ Install dependencies:
 sudo apt-get install gfortran texinfo
 ```
 
-In the cloned directory of audio_utils:
+In the cloned directory of `audio_utils`:
 ```
 git submodule update --init --recursive
 ```
