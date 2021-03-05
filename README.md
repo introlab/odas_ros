@@ -20,7 +20,7 @@ Install dependencies:
 sudo apt-get install gfortran texinfo
 ```
 
-In the cloned directory of `audio_utils`:
+In the cloned directory of `audio_utils`, run this line to install all submodules:
 ```
 git submodule update --init --recursive
 ```
@@ -31,11 +31,14 @@ add_compile_options(-std=c++14)
 ```
 
 ## Installation
-First, you need to clone the repository and prepare it for execution. Clone it in the `src` directory of your catkin workspace.
+First, you need to clone the repository in your catkin workspace.
 ```
 git clone https://github.com/introlab/odas_ros.git
 ```
-You can then build the 
+In the cloned directory of `odas_ros`, run this line to install all submodules:
+```
+git submodule update --init --recursive
+```
 
 ## Hardware configuration
 For ODAS to locate and track sound sources, it needs to know what is the physical configuration of all microphones. There is a file (`configuration.cfg`) that is used to provide ODAS with all the information it needs. You will need the position and direction of each microphones. See [ODAS Configuration](https://github.com/introlab/odas/wiki/Configuration) for details on each part of the file. 
