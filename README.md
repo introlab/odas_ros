@@ -25,6 +25,11 @@ In the cloned directory of `audio_utils`:
 git submodule update --init --recursive
 ```
 
+If you get errors when building with `catkin_make`, you can modify the cmake file of audio_utils to add C++ 14 compiler option.
+```
+add_compile_options(-std=c++14)
+```
+
 ## Installation
 First, you need to clone the repository and prepare it for execution. Clone it in the `src` directory of your catkin workspace.
 ```
