@@ -10,18 +10,23 @@ import io
 import rospy
 
 from std_msgs.msg import Header
-from odas_ros.msg import OdasSst, OdasSstArrayStamped
+from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
+from sensor_msgs.msg import PointCloud2, PointField
 from audio_utils.msg import AudioFrame
 
 
 class OdasServerNode:
     def __init__(self):
         self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
+        self._ssl_frame_id = rospy.get_param('~ssl_frame_id')
         self._sst_frame_id = rospy.get_param('~sst_frame_id')
+        
 
+        self._verify_ssl_configuration()
         self._verify_sst_configuration()
         self._verify_sss_configuration()
 
+        self._ssl_port = self._configuration['ssl']['potential']['interface']['port']
         self._sst_port = self._configuration['sst']['tracked']['interface']['port']
         
         self._sss_port = self._configuration['sss']['separated']['interface']['port']
@@ -31,11 +36,14 @@ class OdasServerNode:
         self._sss_sampling_frequency = self._configuration['sss']['separated']['fS']
         self._sss_frame_sample_count = self._configuration['sss']['separated']['hopSize']
 
+        self._ssl_server_socket = None
+        self._ssl_client_socket = None
         self._sst_server_socket = None
         self._sst_client_socket = None
         self._sss_server_socket = None
         self._sss_client_socket = None
 
+        self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
         self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
         self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
 
@@ -43,6 +51,10 @@ class OdasServerNode:
         with io.open(configuration_path) as f:
             return libconf.load(f)
 
+    def _verify_ssl_configuration(self):
+        if self._configuration['ssl']['potential']['format'] != 'json' or self._configuration['ssl']['potential']['interface']['type'] != 'socket':
+			raise ValueError('The ssl format must be "json" and the sst interface type must be "socket"')
+    
     def _verify_sst_configuration(self):
         if self._configuration['sst']['tracked']['format'] != 'json' or self._configuration['sst']['tracked']['interface']['type'] != 'socket':
 			raise ValueError('The sst format must be "json" and the sst interface type must be "socket"')
@@ -71,6 +83,51 @@ class OdasServerNode:
 
         return server_socket
 
+    def _ssl_thread_run(self):
+        self._ssl_server_socket = self._create_server_socket(self._ssl_port)
+        recv_size = 8192
+
+        while not rospy.is_shutdown():
+            try:
+                self._ssl_client_socket, _ = self._ssl_server_socket.accept()
+            except socket.timeout:
+                continue
+
+            while not rospy.is_shutdown():
+                data = self._ssl_client_socket.recv(recv_size)
+                if not data:
+                    break
+
+                data = data.decode('utf-8')
+                messages = data.split(']\n}\n')
+                
+                for message in messages:
+                    message += ']\n}\n'
+                    try:
+                        ssl = json.loads(data)
+                        self._send_ssl(ssl)
+                    except Exception as e:
+			print(e)
+                        continue
+
+
+    def _send_ssl(self, ssl):
+        odas_ssl_array_stamped_msg = OdasSslArrayStamped()
+        odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
+        odas_ssl_array_stamped_msg.header.stamp = rospy.Time.now()
+        odas_ssl_array_stamped_msg.header.frame_id = self._ssl_frame_id
+        
+        for source in ssl['src']:
+            odas_ssl = OdasSsl()
+            odas_ssl.x = source['x']
+            odas_ssl.y = source['y']
+            odas_ssl.z = source['z']
+            odas_ssl.E = source['E']
+            odas_ssl_array_stamped_msg.sources.append(odas_ssl)
+
+        self._ssl_pub.publish(odas_ssl_array_stamped_msg)
+
+
     def _sst_thread_run(self):
         self._sst_server_socket = self._create_server_socket(self._sst_port)
         recv_size = 8192
@@ -88,7 +145,7 @@ class OdasServerNode:
 
                 data = data.decode('utf-8')
                 messages = data.split(']\n}\n')
-
+                
                 for message in messages:
                     message += ']\n}\n'
                     try:
@@ -145,13 +202,18 @@ class OdasServerNode:
         audio_frame_msg.data = data
         self._sss_pub.publish(audio_frame_msg)
 
+
     def run(self):
         sst_thread = threading.Thread(target=self._sst_thread_run)
         sss_thread = threading.Thread(target=self._sss_thread_run)
+        ssl_thread = threading.Thread(target=self._ssl_thread_run)
 
         sst_thread.start()
+        print("Sound Source Tracking Started")
         sss_thread.start()
-
+        print("Sound Source Separation Started")
+        ssl_thread.start()
+        print("Sound Source Localization Started")
         rospy.spin()
 
         self._sst_server_socket.close()

@@ -16,10 +16,8 @@ extern "C"
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "odas_core_node");
-    ros::NodeHandle nodeHandle;
     ros::NodeHandle privateNodeHandle("~");
 
-    std::cout << "allo";
     std::string configFile;
     privateNodeHandle.getParam("configuration_path", configFile);
 

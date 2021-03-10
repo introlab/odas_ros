@@ -56,6 +56,8 @@ add_message_files(
   FILES
   OdasSst.msg
   OdasSstArrayStamped.msg
+  OdasSsl.msg
+  OdasSslArrayStamped.msg
 )
 
 ## Generate services in the 'srv' folder
