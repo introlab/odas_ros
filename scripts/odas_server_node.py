@@ -26,7 +26,6 @@ class OdasServerNode:
         self._ssl_enabled = rospy.get_param('~ssl_enabled')
         self._sst_enabled = rospy.get_param('~sst_enabled')
         self._sss_enabled = rospy.get_param('~sss_enabled')
-        self._visualization = rospy.get_param('~visualization')
 
         # Initialize SSL (Sound Source Localization)
         if self._ssl_enabled == "true":

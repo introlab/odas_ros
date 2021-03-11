@@ -13,19 +13,26 @@ class OdasVisualizationNode:
     def __init__(self):
         self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
 
-        # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
-        self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
-        self._sst_input_PoseStamped.pose.position.x = 0
-        self._sst_input_PoseStamped.pose.position.y = 0
-        self._sst_input_PoseStamped.pose.position.z = 0
+        # Get enable parameters for SSL, SST and SSS (Sound Source Localization, Tracking and Separation)
+        self._ssl_enabled = rospy.get_param('~ssl_enabled')
+        self._sst_enabled = rospy.get_param('~sst_enabled')
 
-        # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
-        self._ssl_sub = rospy.Subscriber('ssl', OdasSslArrayStamped, self._ssl_cb, queue_size=10)
-        self._sst_sub = rospy.Subscriber('sst', OdasSstArrayStamped, self._sst_cb, queue_size=10)
+        if self._sst_enabled == "true":
+            # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
+            self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
+            self._sst_input_PoseStamped.pose.position.x = 0
+            self._sst_input_PoseStamped.pose.position.y = 0
+            self._sst_input_PoseStamped.pose.position.z = 0
+            # Subscribe to the Sound Source Tracking from ODAS Server
+            self._sst_sub = rospy.Subscriber('sst', OdasSstArrayStamped, self._sst_cb, queue_size=10)
+            # ODAS SST Publisher for PoseStamped
+            self._sst_pose_pub = rospy.Publisher('sst_pose', tf2_geometry_msgs.PoseStamped, queue_size=1)
 
-        # ODAS SST and SSL Publishers for PoseStamped and PointCloud2
-        self._sst_pose_pub = rospy.Publisher('sst_pose', tf2_geometry_msgs.PoseStamped, queue_size=1)
-        self._ssl_pcl_pub = rospy.Publisher("ssl_PointCloud2", PointCloud2, queue_size=500)
+        if self._ssl_enabled == "true":
+            # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
+            self._ssl_sub = rospy.Subscriber('ssl', OdasSslArrayStamped, self._ssl_cb, queue_size=10)
+            # ODAS SSL Publisher for PointCloud2
+            self._ssl_pcl_pub = rospy.Publisher("ssl_pcl2", PointCloud2, queue_size=500)
 
     def _ssl_cb(self, ssl):
         # Sound Source Localization Callback (ODAS)
