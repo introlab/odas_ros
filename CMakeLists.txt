@@ -180,6 +180,7 @@ target_link_libraries(odas_core_node
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/odas_server_node.py
+  scripts/odas_visualization_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -28,7 +28,7 @@ class OdasServerNode:
         self._sss_enabled = rospy.get_param('~sss_enabled')
 
         # Initialize SSL (Sound Source Localization)
-        if self._ssl_enabled == "true":
+        if self._ssl_enabled:
             self._verify_ssl_configuration()
             self._ssl_frame_id = rospy.get_param('~ssl_frame_id')
             self._ssl_port = self._configuration['ssl']['potential']['interface']['port']
@@ -37,7 +37,7 @@ class OdasServerNode:
             self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
         
         # Initialize SST (Sound Source Tracking)
-        if self._sst_enabled == "true":
+        if self._sst_enabled:
             self._verify_sst_configuration()
             self._sst_frame_id = rospy.get_param('~sst_frame_id')
             self._sst_port = self._configuration['sst']['tracked']['interface']['port']
@@ -46,7 +46,7 @@ class OdasServerNode:
             self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
 
         # Initialize SSS (Sound Source Separation) 
-        if self._sss_enabled == "true":
+        if self._sss_enabled:
             self._verify_sss_configuration()
             self._sss_port = self._configuration['sss']['separated']['interface']['port']
             self._sss_nbits = self._configuration['sss']['separated']['nBits']

@@ -2,8 +2,10 @@
 
 import rospy
 
-import tf2_geometry_msgs, tf2_ros, tf_conversions
+import numpy as np
+
 import std_msgs.msg
+import tf2_geometry_msgs, tf2_ros, tf_conversions
 import sensor_msgs.point_cloud2 as pcl2
 
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
@@ -11,13 +13,11 @@ from sensor_msgs.msg import PointCloud2, PointField
 
 class OdasVisualizationNode:
     def __init__(self):
-        self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
-
         # Get enable parameters for SSL, SST and SSS (Sound Source Localization, Tracking and Separation)
         self._ssl_enabled = rospy.get_param('~ssl_enabled')
         self._sst_enabled = rospy.get_param('~sst_enabled')
 
-        if self._sst_enabled == "true":
+        if self._sst_enabled:
             # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
             self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
             self._sst_input_PoseStamped.pose.position.x = 0
@@ -28,7 +28,7 @@ class OdasVisualizationNode:
             # ODAS SST Publisher for PoseStamped
             self._sst_pose_pub = rospy.Publisher('sst_pose', tf2_geometry_msgs.PoseStamped, queue_size=1)
 
-        if self._ssl_enabled == "true":
+        if self._ssl_enabled:
             # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
             self._ssl_sub = rospy.Subscriber('ssl', OdasSslArrayStamped, self._ssl_cb, queue_size=10)
             # ODAS SSL Publisher for PointCloud2
@@ -83,7 +83,7 @@ class OdasVisualizationNode:
         self._sst_input_PoseStamped.header.frame_id = sst.header.frame_id
         self._sst_input_PoseStamped.header.stamp = rospy.Time.now()
 
-        self._sst_pose_pub.publish(self._transform_pose(self._sst_input_PoseStamped, "odas_link"))
+        self._sst_pose_pub.publish(self._sst_input_PoseStamped)
 
     def _unitVector_to_quaternion(self, x, y, z):
         # Convert a xyz unit vector (point on a unit sphere) to quaternion
