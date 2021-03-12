@@ -19,6 +19,7 @@ git clone https://github.com/introlab/audio_utils.git
 Install dependencies:
 ```
 sudo apt-get install gfortran texinfo
+sudo pip install libconf
 ```
 
 In the cloned directory of `audio_utils`, run this line to install all submodules:
