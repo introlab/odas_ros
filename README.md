@@ -1,5 +1,6 @@
 # odas_ros
 ODAS ROS package: Tabletop version by Marc-Antoine Maheux at [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
+Modified by: Olivier Roy
 
 This package is a ROS package for [ODAS](https://github.com/introlab/odas)
 
@@ -96,4 +97,65 @@ For ODAS to precisely locate and track a sound source, it needs to know precisel
 
 For Microphone 1, `mu` is the position in x, y and z from the reference point. `sigma2` is the position variance in `xx, xy xz, yx, yy, yz, zx, zy, zz` this setting should mainly remain untouched. The `direction` parameter is the direction of the microphone. It should be a unit vector pointing in the direction that the microphone is pointing relative to the reference frame. The `angle` parameter is the maximum angle at which gain is 1 and minimum angle at which gain is 0. 
 
-ODAS can't provide the tracked object distance but a coordinate in a unit sphere.
+### Sound Source Localization, Tracking and Separation
+ODAS can output the sound source localization, the source source tracking and the sound source separation:
+* Sound Source Localization: All the potential sound sources in the unit sphere. Each sound source position on the unit sphere and its energy.
+* Sound Source Tracking: The most probable location of the sound source is provided (xyz position on the unit sphere).
+* Sound Source Separation: An Audio Frame of the isolated sound source is provided.
+
+Depending on what type of information will be used, the configuration file needs to be modified. For example, if I need only the Sound Source Tracking, the configuration file should be modified. The only thing that should be changed is the format and interface for each type of data. The required format if it is enabled is `json` and the interface type should be `socket`. If it is disabled, the format can be set to `undefined` and the interface type to `blackhole`.
+
+For example, if the only data that will be used is the sound source tracking:
+* In the `# Sound Source Localization` section, this should be modified to look like this:
+```
+potential: {
+
+        #format = "json";
+
+        #interface: {
+        #    type = "socket";
+        #    ip = "127.0.0.1";
+        #    port = 9002;
+        #};
+
+        format = "undefined";
+
+        interface: {
+           type = "blackhole";
+        };
+```
+
+* In the `# Sound Source Tracking` section, this should be modified to look like this:
+```
+# Output to export tracked sources
+    tracked: {
+
+        format = "json";
+
+        interface: {
+            type = "socket";
+            ip = "127.0.0.1";
+            port = 9000;
+        };
+    };
+```
+
+* In the `# Sound Source Separation` section, this should be modified to look like this:
+```
+separated: { #packaging and destination of the separated files
+
+        fS = 44100;
+        hopSize = 256;
+        nBits = 16;
+
+        interface: {
+           type = "blackhole";
+        };
+
+        #interface: {
+        #    type = "socket";
+        #    ip = "127.0.0.1";
+        #    port = 9001;
+        #}        
+    };
+ ```
