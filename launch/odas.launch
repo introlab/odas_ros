@@ -4,7 +4,9 @@
   <arg name="ssl_enabled" default="true"/>
   <arg name="sst_enabled" default="true"/>
   <arg name="sss_enabled" default="true"/>
+  <arg name="frame_id" default="odas"/>
   <arg name="visualization" default="true"/>
+  <arg name="rviz" default="false"/>
   <arg name="rviz_cfg" default="-d $(find odas_ros)/config/rviz/odas_rviz.rviz"/>
 
   <!-- ODAS -->
@@ -15,8 +17,7 @@
 
     <node pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
       <param name="configuration_path" value="$(arg configuration_path)"/>
-      <param name="ssl_frame_id" value="odas"/>
-      <param name="sst_frame_id" value="odas"/>
+      <param name="frame_id" value="$(arg frame_id)"/>
 
       <param name="ssl_enabled" value="$(arg ssl_enabled)"/>
       <param name="sst_enabled" value="$(arg sst_enabled)"/>
@@ -29,10 +30,10 @@
       </node>
 
       <!-- Position of frame ODAS relative to robot Base_link -->
-      <node if="$(arg visualization)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
+      <node if="$(arg rviz)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
 
       <!--Run Rviz-->
-      <node name="rviz" pkg="rviz" type="rviz" args="$(arg rviz_cfg)"/>
+      <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="$(arg rviz_cfg)"/>
     </group>
   </group>
 </launch>

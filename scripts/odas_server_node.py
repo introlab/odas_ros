@@ -30,7 +30,7 @@ class OdasServerNode:
         # Initialize SSL (Sound Source Localization)
         if self._ssl_enabled:
             self._verify_ssl_configuration()
-            self._ssl_frame_id = rospy.get_param('~ssl_frame_id')
+            self._ssl_frame_id = rospy.get_param('~frame_id')
             self._ssl_port = self._configuration['ssl']['potential']['interface']['port']
             self._ssl_server_socket = None
             self._ssl_client_socket = None
@@ -39,7 +39,7 @@ class OdasServerNode:
         # Initialize SST (Sound Source Tracking)
         if self._sst_enabled:
             self._verify_sst_configuration()
-            self._sst_frame_id = rospy.get_param('~sst_frame_id')
+            self._sst_frame_id = rospy.get_param('~frame_id')
             self._sst_port = self._configuration['sst']['tracked']['interface']['port']
             self._sst_server_socket = None
             self._sst_client_socket = None
@@ -215,6 +215,7 @@ class OdasServerNode:
 
 
     def run(self):
+        
         # Open sockets and run threads
         if self._ssl_enabled:
             ssl_thread = threading.Thread(target=self._ssl_thread_run)
