@@ -6,18 +6,13 @@ import numpy as np
 
 import std_msgs.msg
 import tf2_geometry_msgs, tf2_ros, tf_conversions
-import sensor_msgs.point_cloud2 as pcl2
 
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from sensor_msgs.msg import PointCloud2, PointField
 
 class OdasVisualizationNode:
     def __init__(self):
-        # Get enable parameters for SSL, SST and SSS (Sound Source Localization, Tracking and Separation)
-        self._ssl_enabled = rospy.get_param('~ssl_enabled')
-        self._sst_enabled = rospy.get_param('~sst_enabled')
-
-        if self._sst_enabled:
+        if self._verify_sst_configuration():
             # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
             self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
             self._sst_input_PoseStamped.pose.position.x = 0
@@ -28,11 +23,32 @@ class OdasVisualizationNode:
             # ODAS SST Publisher for PoseStamped
             self._sst_pose_pub = rospy.Publisher('sst_pose', tf2_geometry_msgs.PoseStamped, queue_size=1)
 
-        if self._ssl_enabled:
+        if self._verify_ssl_configuration():
             # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
             self._ssl_sub = rospy.Subscriber('ssl', OdasSslArrayStamped, self._ssl_cb, queue_size=10)
             # ODAS SSL Publisher for PointCloud2
             self._ssl_pcl_pub = rospy.Publisher("ssl_pcl2", PointCloud2, queue_size=500)
+
+    def _verify_ssl_configuration(self):
+        if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
+            # If interface type is not socket, SSL disabled.
+            return false
+        elif self._configuration['ssl']['potential']['format'] != 'json':
+			raise ValueError('The ssl format must be "json"')
+        else:
+            # If interface type is socket and the format is json, SSL enabled.
+            return true
+
+    
+    def _verify_sst_configuration(self):
+	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
+            # If interface type is not socket, SST disabled.
+            return false
+        elif self._configuration['sst']['tracked']['format'] != 'json':
+			raise ValueError('The sst format must be "json"')
+        else:
+            # If interface type is socket and the format is json, SST enabled.
+            return true
 
     def _ssl_cb(self, ssl):
         # Sound Source Localization Callback (ODAS)

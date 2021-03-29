@@ -11,9 +11,7 @@ import rospy
 
 import tf2_geometry_msgs, tf2_ros, tf_conversions
 import std_msgs.msg
-import sensor_msgs.point_cloud2 as pcl2
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
-from sensor_msgs.msg import PointCloud2, PointField
 from audio_utils.msg import AudioFrame
 
 
@@ -21,33 +19,24 @@ class OdasServerNode:
     def __init__(self):
         # Load ODAS configuration
         self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
+        self._frame_id = rospy.get_param('~frame_id')
 
-        # Get enable parameters for SSL, SST and SSS (Sound Source Localization, Tracking and Separation)
-        self._ssl_enabled = rospy.get_param('~ssl_enabled')
-        self._sst_enabled = rospy.get_param('~sst_enabled')
-        self._sss_enabled = rospy.get_param('~sss_enabled')
-
-        # Initialize SSL (Sound Source Localization)
-        if self._ssl_enabled:
-            self._verify_ssl_configuration()
-            self._ssl_frame_id = rospy.get_param('~frame_id')
+        # Initialize SSL (Sound Source Localization) if configuration is correct.
+        if self._verify_ssl_configuration():
             self._ssl_port = self._configuration['ssl']['potential']['interface']['port']
             self._ssl_server_socket = None
             self._ssl_client_socket = None
             self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
         
-        # Initialize SST (Sound Source Tracking)
-        if self._sst_enabled:
-            self._verify_sst_configuration()
-            self._sst_frame_id = rospy.get_param('~frame_id')
+        # Initialize SST (Sound Source Tracking) if configuration is correct.
+        if self._verify_sst_configuration():
             self._sst_port = self._configuration['sst']['tracked']['interface']['port']
             self._sst_server_socket = None
             self._sst_client_socket = None
             self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
 
-        # Initialize SSS (Sound Source Separation) 
-        if self._sss_enabled:
-            self._verify_sss_configuration()
+        # Initialize SSS (Sound Source Separation) if configuration is correct.
+        if self._verify_sss_configuration():
             self._sss_port = self._configuration['sss']['separated']['interface']['port']
             self._sss_nbits = self._configuration['sss']['separated']['nBits']
             self._sss_format = self._sss_nbits_to_sss_format(self._sss_nbits)
@@ -64,16 +53,34 @@ class OdasServerNode:
             return libconf.load(f)
 
     def _verify_ssl_configuration(self):
-        if self._configuration['ssl']['potential']['format'] != 'json' or self._configuration['ssl']['potential']['interface']['type'] != 'socket':
-			raise ValueError('The ssl format must be "json" and the sst interface type must be "socket"')
+        if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
+            # If interface type is not socket, SSL disabled.
+            return false
+        elif self._configuration['ssl']['potential']['format'] != 'json':
+			raise ValueError('The ssl format must be "json"')
+        else:
+            # If interface type is socket and the format is json, SSL enabled.
+            return true
+
     
     def _verify_sst_configuration(self):
-        if self._configuration['sst']['tracked']['format'] != 'json' or self._configuration['sst']['tracked']['interface']['type'] != 'socket':
-			raise ValueError('The sst format must be "json" and the sst interface type must be "socket"')
+	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
+            # If interface type is not socket, SST disabled.
+            return false
+        elif self._configuration['sst']['tracked']['format'] != 'json':
+			raise ValueError('The sst format must be "json"')
+        else:
+            # If interface type is socket and the format is json, SST enabled.
+            return true
+
 
     def _verify_sss_configuration(self):
         if self._configuration['sss']['separated']['interface']['type'] != 'socket':
-			raise ValueError('The sss interface type must be "socket"')
+            # If interface type is not socket, SSS disabled.
+			return false
+        else: 
+            # If interface type is socket, SSS enabled.
+            return true
 
 
     def _sss_nbits_to_sss_format(self, nbits):
