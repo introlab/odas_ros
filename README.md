@@ -1,6 +1,6 @@
 # odas_ros
 
-This package is a ROS package for [ODAS](https://github.com/introlab/odas)
+This package is a ROS package for [ODAS](https://github.com/introlab/odas).
 
 [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
 
