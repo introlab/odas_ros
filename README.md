@@ -11,6 +11,8 @@ This package is a ROS package for [ODAS](https://github.com/introlab/odas).
 * Simon Michaud
 * Samuel Faucher
 * Olivier Roy
+* Vincent Pelletier
+* François Grondin
 
 # License
 [GPLv3](LICENSE)
