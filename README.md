@@ -1,7 +1,13 @@
 # odas_ros
-ODAS ROS package: Tabletop version by Marc-Antoine Maheux at [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
+ODAS ROS package.
 
-Modified by: Olivier Roy
+[IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
+
+# Authors
+* Marc-Antoine Maheux
+* Simon Michaud
+* Samuel Faucher
+* Olivier Roy
 
 This package is a ROS package for [ODAS](https://github.com/introlab/odas)
 
