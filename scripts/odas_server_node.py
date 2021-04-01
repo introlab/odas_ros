@@ -64,7 +64,7 @@ class OdasServerNode:
 
     
     def _verify_sst_configuration(self):
-	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
+        if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
             # If interface type is not socket, SST disabled.
             return False
         elif self._configuration['sst']['tracked']['format'] != 'json':
