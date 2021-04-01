@@ -11,6 +11,9 @@ ODAS ROS package.
 
 This package is a ROS package for [ODAS](https://github.com/introlab/odas)
 
+# License
+[GPLv3](LICENSE)
+
 ## Prerequisites
 You will need CMake, GCC and the following external libraries:
 ```
