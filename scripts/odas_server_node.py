@@ -77,7 +77,7 @@ class OdasServerNode:
     def _verify_sss_configuration(self):
         if self._configuration['sss']['separated']['interface']['type'] != 'socket':
             # If interface type is not socket, SSS disabled.
-			return False
+            return False
         else: 
             # If interface type is socket, SSS enabled.
             return True
