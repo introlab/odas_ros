@@ -3,6 +3,8 @@ ODAS ROS package.
 
 [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
 
+[![ODAS Demonstration](https://img.youtube.com/vi/n7y2rLAnd5I/0.jpg)](https://youtu.be/n7y2rLAnd5I)
+
 # Authors
 * Marc-Antoine Maheux
 * Simon Michaud
