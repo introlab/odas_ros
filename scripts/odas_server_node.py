@@ -60,27 +60,27 @@ class OdasServerNode:
 			raise ValueError('The ssl format must be "json"')
         else:
             # If interface type is socket and the format is json, SSL enabled.
-            return true
+            return True
 
     
     def _verify_sst_configuration(self):
 	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
             # If interface type is not socket, SST disabled.
-            return false
+            return False
         elif self._configuration['sst']['tracked']['format'] != 'json':
-			raise ValueError('The sst format must be "json"')
+            raise ValueError('The sst format must be "json"')
         else:
             # If interface type is socket and the format is json, SST enabled.
-            return true
+            return True
 
 
     def _verify_sss_configuration(self):
         if self._configuration['sss']['separated']['interface']['type'] != 'socket':
             # If interface type is not socket, SSS disabled.
-			return false
+			return False
         else: 
             # If interface type is socket, SSS enabled.
-            return true
+            return True
 
 
     def _sss_nbits_to_sss_format(self, nbits):
