@@ -162,4 +162,4 @@ separated: { #packaging and destination of the separated files
     };
  ```
  
- Note that if a socket is set to "blackhole", the topic won't be published.
+ Note that if an interface type is set to "blackhole", the associated topic won't be published.
