@@ -1,37 +1,28 @@
 <launch>
   <!-- Arguments -->
   <arg name="configuration_path" default="$(find odas_ros)/config/configuration.cfg"/>
-  <arg name="ssl_enabled" default="true"/>
-  <arg name="sst_enabled" default="true"/>
-  <arg name="sss_enabled" default="true"/>
   <arg name="frame_id" default="odas"/>
   <arg name="visualization" default="true"/>
   <arg name="rviz" default="false"/>
   <arg name="rviz_cfg" default="-d $(find odas_ros)/config/rviz/odas_rviz.rviz"/>
   <arg name="local" default="true" />
 
-  <machine unless="$(arg local)" name="movo2" address="movo2" user="movo" env-loader="/home/movo/env.sh" default="true"/>
-
   <!-- ODAS -->
   <group ns="odas">
-    <node machine="movo2" pkg="odas_ros" type="odas_core_node" name="odas_core_node">
+    <node pkg="odas_ros" type="odas_core_node" name="odas_core_node">
           <param name="configuration_path" value="$(arg configuration_path)"/>
     </node>
 
-    <node machine="movo2" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
+    <node pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
-
-      <param name="ssl_enabled" value="$(arg ssl_enabled)"/>
-      <param name="sst_enabled" value="$(arg sst_enabled)"/>
-      <param name="sss_enabled" value="$(arg ssl_enabled)"/>
     </node>
-    <group if="$(arg visualization)">
-      <node machine="movo2" pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="screen">
-        <param name="ssl_enabled" value="$(arg ssl_enabled)"/>
-        <param name="sst_enabled" value="$(arg sst_enabled)"/>
-      </node>
 
+    <group if="$(arg visualization)">
+      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="screen">
+        <param name="configuration_path" value="$(arg configuration_path)"/>
+      </node>
+      
       <!-- Position of frame ODAS relative to robot Base_link -->
       <node if="$(arg rviz)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
 

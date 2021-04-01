@@ -3,6 +3,8 @@
 import rospy
 
 import numpy as np
+import io
+import libconf
 
 import std_msgs.msg
 import tf2_geometry_msgs, tf2_ros, tf_conversions
@@ -12,6 +14,9 @@ from sensor_msgs.msg import PointCloud2, PointField
 
 class OdasVisualizationNode:
     def __init__(self):
+        # Load ODAS configuration
+        self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
+
         if self._verify_sst_configuration():
             # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
             self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
@@ -29,25 +34,28 @@ class OdasVisualizationNode:
             # ODAS SSL Publisher for PointCloud2
             self._ssl_pcl_pub = rospy.Publisher("ssl_pcl2", PointCloud2, queue_size=500)
 
+    def _load_configuration(self, configuration_path):
+        with io.open(configuration_path) as f:
+            return libconf.load(f)
+
     def _verify_ssl_configuration(self):
+        # If interface type is not socket, SSL disabled.
+        # If interface type is socket and the format is json, SSL enabled.
         if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
-            # If interface type is not socket, SSL disabled.
             return False
         elif self._configuration['ssl']['potential']['format'] != 'json':
             raise ValueError('The ssl format must be "json"')
         else:
-            # If interface type is socket and the format is json, SSL enabled.
             return True
 
-    
     def _verify_sst_configuration(self):
-	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
-            # If interface type is not socket, SST disabled.
+        # If interface type is not socket, SST disabled.
+        # If interface type is socket and the format is json, SST enabled.
+        if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
             return False
         elif self._configuration['sst']['tracked']['format'] != 'json':
             raise ValueError('The sst format must be "json"')
         else:
-            # If interface type is socket and the format is json, SST enabled.
             return True
 
     def _ssl_cb(self, ssl):

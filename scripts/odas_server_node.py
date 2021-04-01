@@ -27,6 +27,7 @@ class OdasServerNode:
             self._ssl_server_socket = None
             self._ssl_client_socket = None
             self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
+            self._ssl_enabled = True
         
         # Initialize SST (Sound Source Tracking) if configuration is correct.
         if self._verify_sst_configuration():
@@ -34,6 +35,7 @@ class OdasServerNode:
             self._sst_server_socket = None
             self._sst_client_socket = None
             self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
+            self._sst_enabled = True
 
         # Initialize SSS (Sound Source Separation) if configuration is correct.
         if self._verify_sss_configuration():
@@ -46,6 +48,7 @@ class OdasServerNode:
             self._sss_server_socket = None
             self._sss_client_socket = None
             self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
+            self._sss_enabled = True
         
 
     def _load_configuration(self, configuration_path):
@@ -53,33 +56,33 @@ class OdasServerNode:
             return libconf.load(f)
 
     def _verify_ssl_configuration(self):
+        # If interface type is not socket, SSL disabled.
+        # If interface type is socket and the format is json, SSL enabled.
         if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
-            # If interface type is not socket, SSL disabled.
             return False
         elif self._configuration['ssl']['potential']['format'] != 'json':
             raise ValueError('The ssl format must be "json"')
         else:
-            # If interface type is socket and the format is json, SSL enabled.
             return True
 
     
     def _verify_sst_configuration(self):
+        # If interface type is not socket, SST disabled.
+        # If interface type is socket and the format is json, SST enabled.
         if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
-            # If interface type is not socket, SST disabled.
             return False
         elif self._configuration['sst']['tracked']['format'] != 'json':
             raise ValueError('The sst format must be "json"')
         else:
-            # If interface type is socket and the format is json, SST enabled.
             return True
 
 
     def _verify_sss_configuration(self):
+        # If interface type is not socket, SSS disabled.
+        # If interface type is socket, SSS enabled.
         if self._configuration['sss']['separated']['interface']['type'] != 'socket':
-            # If interface type is not socket, SSS disabled.
             return False
         else: 
-            # If interface type is socket, SSS enabled.
             return True
 
 
@@ -222,7 +225,6 @@ class OdasServerNode:
 
 
     def run(self):
-        
         # Open sockets and run threads
         if self._ssl_enabled:
             ssl_thread = threading.Thread(target=self._ssl_thread_run)
