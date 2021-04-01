@@ -161,3 +161,5 @@ separated: { #packaging and destination of the separated files
         #}        
     };
  ```
+ 
+ Note that if a socket is set to "blackhole", the topic won't be published.
