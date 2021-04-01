@@ -1,5 +1,6 @@
 # odas_ros
-ODAS ROS package.
+
+This package is a ROS package for [ODAS](https://github.com/introlab/odas)
 
 [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
 
@@ -10,8 +11,6 @@ ODAS ROS package.
 * Simon Michaud
 * Samuel Faucher
 * Olivier Roy
-
-This package is a ROS package for [ODAS](https://github.com/introlab/odas)
 
 # License
 [GPLv3](LICENSE)
