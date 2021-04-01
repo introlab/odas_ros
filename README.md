@@ -8,6 +8,7 @@ This package is a ROS package for [ODAS](https://github.com/introlab/odas).
 
 # Authors
 * Marc-Antoine Maheux
+* Cédric Godin
 * Simon Michaud
 * Samuel Faucher
 * Olivier Roy
