@@ -1,0 +1,33 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="configuration_path" default="$(find odas_ros)/config/configuration.cfg"/>
+  <arg name="frame_id" default="odas"/>
+  <arg name="visualization" default="true"/>
+  <arg name="rviz" default="false"/>
+  <arg name="rviz_cfg" default="-d $(find odas_ros)/config/rviz/odas_rviz.rviz"/>
+  <arg name="local" default="true" />
+
+  <!-- ODAS -->
+  <group ns="odas">
+    <node pkg="odas_ros" type="odas_core_node" name="odas_core_node">
+          <param name="configuration_path" value="$(arg configuration_path)"/>
+    </node>
+
+    <node pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
+      <param name="configuration_path" value="$(arg configuration_path)"/>
+      <param name="frame_id" value="$(arg frame_id)"/>
+    </node>
+
+    <group if="$(arg visualization)">
+      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="screen">
+        <param name="configuration_path" value="$(arg configuration_path)"/>
+      </node>
+      
+      <!-- Position of frame ODAS relative to robot Base_link -->
+      <node if="$(arg rviz)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
+
+      <!--Run Rviz-->
+      <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="$(arg rviz_cfg)"/>
+    </group>
+  </group>
+</launch>
