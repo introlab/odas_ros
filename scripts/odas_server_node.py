@@ -55,9 +55,9 @@ class OdasServerNode:
     def _verify_ssl_configuration(self):
         if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
             # If interface type is not socket, SSL disabled.
-            return false
+            return False
         elif self._configuration['ssl']['potential']['format'] != 'json':
-			raise ValueError('The ssl format must be "json"')
+            raise ValueError('The ssl format must be "json"')
         else:
             # If interface type is socket and the format is json, SSL enabled.
             return True

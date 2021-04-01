@@ -32,23 +32,23 @@ class OdasVisualizationNode:
     def _verify_ssl_configuration(self):
         if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
             # If interface type is not socket, SSL disabled.
-            return false
+            return False
         elif self._configuration['ssl']['potential']['format'] != 'json':
-			raise ValueError('The ssl format must be "json"')
+            raise ValueError('The ssl format must be "json"')
         else:
             # If interface type is socket and the format is json, SSL enabled.
-            return true
+            return True
 
     
     def _verify_sst_configuration(self):
 	    if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
             # If interface type is not socket, SST disabled.
-            return false
+            return False
         elif self._configuration['sst']['tracked']['format'] != 'json':
-			raise ValueError('The sst format must be "json"')
+            raise ValueError('The sst format must be "json"')
         else:
             # If interface type is socket and the format is json, SST enabled.
-            return true
+            return True
 
     def _ssl_cb(self, ssl):
         # Sound Source Localization Callback (ODAS)
