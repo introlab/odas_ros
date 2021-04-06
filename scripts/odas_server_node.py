@@ -137,7 +137,7 @@ class OdasServerNode:
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
         odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
         odas_ssl_array_stamped_msg.header.stamp = rospy.Time.now()
-        odas_ssl_array_stamped_msg.header.frame_id = self._ssl_frame_id
+        odas_ssl_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in ssl['src']:
             odas_ssl = OdasSsl()
@@ -181,7 +181,7 @@ class OdasServerNode:
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
         odas_sst_array_stamped_msg.header.stamp = rospy.Time.now()
-        odas_sst_array_stamped_msg.header.frame_id = self._sst_frame_id
+        odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in sst['src']:
             if source['id'] != 0:

@@ -9,6 +9,7 @@ import libconf
 import std_msgs.msg
 import tf2_geometry_msgs, tf2_ros, tf_conversions
 
+import sensor_msgs.point_cloud2 as pcl2
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from sensor_msgs.msg import PointCloud2, PointField
 
