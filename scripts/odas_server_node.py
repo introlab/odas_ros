@@ -20,6 +20,9 @@ class OdasServerNode:
         # Load ODAS configuration
         self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
         self._frame_id = rospy.get_param('~frame_id')
+        self._ssl_enabled = False
+        self._sst_enabled = False
+        self._sss_enabled = False
 
         # Initialize SSL (Sound Source Localization) if configuration is correct.
         if self._verify_ssl_configuration():
@@ -49,6 +52,8 @@ class OdasServerNode:
             self._sss_client_socket = None
             self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
             self._sss_enabled = True
+        
+        self.run()
         
 
     def _load_configuration(self, configuration_path):
@@ -264,7 +269,6 @@ class OdasServerNode:
 def main():
     rospy.init_node('odas_server_node')
     odas_server_node = OdasServerNode()
-    odas_server_node.run()
 
 
 if __name__ == '__main__':
