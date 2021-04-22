@@ -175,4 +175,23 @@ separated: { #packaging and destination of the separated files
     };
  ```
  
- Note that if an interface type is set to "blackhole", the associated topic won't be published.
+ Note that if an interface type is set to "blackhole" and the format to "undefined", the associated topic won't be published.
+ 
+ ### Sound Source Tracking Threshold adjustment
+ The default configuration file should be correct for most configuration. However, if the Sound Source Tracking does not work (i.e. the published topic `/odas/sst` does not contain any sources or the sources are indesirable) it may be because the threshold is not set correctly. 
+ 
+ In the Source Source Tracking section of the configuration file, there is a section with `active` and `inactive`:
+ ```
+ # Parameters used by both the Kalman and particle filter
+
+    active = (
+        { weight = 1.0; mu = 0.3; sigma2 = 0.0025 }
+    );
+
+    inactive = (
+        { weight = 1.0; mu = 0.15; sigma2 = 0.0025 }
+    );
+ ```
+ The `active` parameter represents the limit to consider a sound source active (high limit) and the`inactive` parameter is the lower limit at which a sound source is considered inactive. 
+* If `mu` is too high in the `active` and `inactive` parameters, few sound sources will be considered like active. 
+* If `mu` in the `active` and `inactive` parameters are set too low, too much sound sources will be considered active.
