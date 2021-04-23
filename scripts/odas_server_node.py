@@ -134,7 +134,7 @@ class OdasServerNode:
                         ssl = json.loads(data)
                         self._send_ssl(ssl)
                     except Exception as e:
-			            print(e)
+                        print(e)
                         continue
 
 
@@ -179,7 +179,7 @@ class OdasServerNode:
                         sst = json.loads(data)
                         self._send_sst(sst)
                     except Exception as e:
-			            print(e)
+                        print(e)
                         continue
 
     def _send_sst(self, sst):
