@@ -10,7 +10,7 @@ import std_msgs.msg
 import tf_conversions
 
 import sensor_msgs.point_cloud2 as pcl2
-from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
+from odas_ros.msg import OdasSstArrayStamped, OdasSslArrayStamped
 from  geometry_msgs.msg import PoseArray, Pose
 from sensor_msgs.msg import PointCloud2, PointField
 
@@ -33,9 +33,11 @@ class OdasVisualizationNode:
             # ODAS SSL Publisher for PointCloud2
             self._ssl_pcl_pub = rospy.Publisher("ssl_pcl2", PointCloud2, queue_size=500)
 
+
     def _load_configuration(self, configuration_path):
         with io.open(configuration_path) as f:
             return libconf.load(f)
+
 
     def _verify_ssl_configuration(self):
         # If interface type is not socket, SSL disabled.
@@ -47,6 +49,7 @@ class OdasVisualizationNode:
         else:
             return True
 
+
     def _verify_sst_configuration(self):
         # If interface type is not socket, SST disabled.
         # If interface type is socket and the format is json, SST enabled.
@@ -56,6 +59,7 @@ class OdasVisualizationNode:
             raise ValueError('The sst format must be "json"')
         else:
             return True
+
 
     def _ssl_cb(self, ssl):
         # Sound Source Localization Callback (ODAS)
@@ -81,6 +85,7 @@ class OdasVisualizationNode:
             pcl = pcl2.create_cloud(header,fields,cloud_points)
             self._ssl_pcl_pub.publish(pcl)
 
+
     def _sst_cb(self, sst):
         # Sound Source Tracking Callback (ODAS)
         if len(sst.sources) == 0:
@@ -91,7 +96,7 @@ class OdasVisualizationNode:
         self._sst_input_PoseArray.poses = []
             
         for src in sst.sources:
-            q = self._unitVector_to_quaternion(src.x, src.y, src.z)
+            q = self._unit_vector_to_quaternion(src.x, src.y, src.z)
 
             # Update the SST PoseStamped
             _sst_input_Pose = Pose()
@@ -107,7 +112,8 @@ class OdasVisualizationNode:
 
         self._sst_pose_pub.publish(self._sst_input_PoseArray)
 
-    def _unitVector_to_quaternion(self, x, y, z):
+
+    def _unit_vector_to_quaternion(self, x, y, z):
         # Convert a xyz unit vector (point on a unit sphere) to quaternion
         yaw = np.arctan2(y,x)
         pitch = -np.arctan2(z,np.sqrt(x*x+y*y))
@@ -115,8 +121,10 @@ class OdasVisualizationNode:
         q = tf_conversions.transformations.quaternion_from_euler(roll, pitch, yaw)
         return q
 
+
     def run(self):
         rospy.spin()
+
 
 def main():
     rospy.init_node('odas_visualization_node')
