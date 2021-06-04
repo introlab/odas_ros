@@ -235,7 +235,7 @@ class OdasServerNode:
         audio_frame_msg.data = data
         self._sss_pub.publish(audio_frame_msg)
 
-
+    
     def run(self):
         # Open sockets and run threads
         if self._ssl_enabled:
