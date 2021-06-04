@@ -14,6 +14,9 @@ import std_msgs.msg
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from audio_utils.msg import AudioFrame
 
+import os
+import subprocess
+
 
 class OdasServerNode:
     def __init__(self):
@@ -53,12 +56,11 @@ class OdasServerNode:
             self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
             self._sss_enabled = True
         
-        self.run()
-        
 
     def _load_configuration(self, configuration_path):
         with io.open(configuration_path) as f:
             return libconf.load(f)
+
 
     def _verify_ssl_configuration(self):
         # If interface type is not socket, SSL disabled.
@@ -101,7 +103,9 @@ class OdasServerNode:
         else:
             raise ValueError('Not supported format (nbits={})'.format(nbits))
 
+
     def _create_server_socket(self, port):
+        rospy.loginfo("Creating server socket on port: " + str(port))
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket. SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind(('', port))
@@ -109,6 +113,7 @@ class OdasServerNode:
         server_socket.settimeout(0.1)
 
         return server_socket
+
 
     def _ssl_thread_run(self):
         self._ssl_server_socket = self._create_server_socket(self._ssl_port)
@@ -171,16 +176,18 @@ class OdasServerNode:
                     break
 
                 data = data.decode('utf-8')
-                messages = data.split(']\n}\n')
+                messages = data.split("]\n}\n")
                 
-                for message in messages:
-                    message += ']\n}\n'
+                for i in range(0, len(messages)-1):
+                    if i < len(messages)-1:
+                        messages[i] += "]\n}\n"
                     try:
-                        sst = json.loads(data)
+                        sst = json.loads(messages[i])
                         self._send_sst(sst)
                     except Exception as e:
                         print(e)
                         continue
+
 
     def _send_sst(self, sst):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
@@ -199,6 +206,7 @@ class OdasServerNode:
                 odas_sst_array_stamped_msg.sources.append(odas_sst)
 
         self._sst_pub.publish(odas_sst_array_stamped_msg)
+
 
     def _sss_thread_run(self):
         self._sss_server_socket = self._create_server_socket(self._sss_port)
@@ -219,6 +227,7 @@ class OdasServerNode:
                 else:
                     self._send_sss(data)
 
+
     def _send_sss(self, data):
         audio_frame_msg = AudioFrame()
         audio_frame_msg.format = self._sss_format
@@ -228,7 +237,7 @@ class OdasServerNode:
         audio_frame_msg.data = data
         self._sss_pub.publish(audio_frame_msg)
 
-
+    
     def run(self):
         # Open sockets and run threads
         if self._ssl_enabled:
@@ -243,8 +252,17 @@ class OdasServerNode:
             sss_thread = threading.Thread(target=self._sss_thread_run)
             sss_thread.start()
             print("Sound Source Separation Started")
-        
+
+        executable_args = ["rosrun",
+                           "odas_ros",
+                           "odas_core_node",
+                           "_configuration_path:=" + rospy.get_param('~configuration_path')]
+                           
+        odas_core_process = subprocess.Popen(executable_args, cwd=os.curdir)
+            
         rospy.spin()
+
+        odas_core_process.terminate()
 
         # Close sockets and join threads
         if self._ssl_enabled:
@@ -269,6 +287,7 @@ class OdasServerNode:
 def main():
     rospy.init_node('odas_server_node')
     odas_server_node = OdasServerNode()
+    odas_server_node.run()
 
 
 if __name__ == '__main__':

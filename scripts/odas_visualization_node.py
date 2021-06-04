@@ -7,10 +7,11 @@ import io
 import libconf
 
 import std_msgs.msg
-import tf2_geometry_msgs, tf2_ros, tf_conversions
+import tf_conversions
 
 import sensor_msgs.point_cloud2 as pcl2
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
+from  geometry_msgs.msg import PoseArray, Pose
 from sensor_msgs.msg import PointCloud2, PointField
 
 class OdasVisualizationNode:
@@ -20,14 +21,11 @@ class OdasVisualizationNode:
 
         if self._verify_sst_configuration():
             # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
-            self._sst_input_PoseStamped = tf2_geometry_msgs.PoseStamped()
-            self._sst_input_PoseStamped.pose.position.x = 0
-            self._sst_input_PoseStamped.pose.position.y = 0
-            self._sst_input_PoseStamped.pose.position.z = 0
+            self._sst_input_PoseArray = PoseArray()
             # Subscribe to the Sound Source Tracking from ODAS Server
             self._sst_sub = rospy.Subscriber('sst', OdasSstArrayStamped, self._sst_cb, queue_size=10)
             # ODAS SST Publisher for PoseStamped
-            self._sst_pose_pub = rospy.Publisher('sst_pose', tf2_geometry_msgs.PoseStamped, queue_size=1)
+            self._sst_pose_pub = rospy.Publisher('sst_poses', PoseArray, queue_size=10)
 
         if self._verify_ssl_configuration():
             # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
@@ -88,27 +86,26 @@ class OdasVisualizationNode:
         if len(sst.sources) == 0:
             return
 
-        if len(sst.sources) > 1:
-            rospy.logerr('Invalid sst (len(sst.sources)={})'.format(len(sst.sources)))
-            return
+        self._sst_input_PoseArray.header.stamp = rospy.Time.now()
+        self._sst_input_PoseArray.header.frame_id = sst.header.frame_id
+        self._sst_input_PoseArray.poses = []
+            
+        for src in sst.sources:
+            q = self._unitVector_to_quaternion(src.x, src.y, src.z)
 
-        # Extract xyz position of source on unit sphere from Sound Source Tracking
-        x = sst.sources[0].x
-        y = sst.sources[0].y
-        z = sst.sources[0].z
+            # Update the SST PoseStamped
+            _sst_input_Pose = Pose()
+            _sst_input_Pose.position.x = 0
+            _sst_input_Pose.position.y = 0
+            _sst_input_Pose.position.z = 0
+            _sst_input_Pose.orientation.x = q[0]
+            _sst_input_Pose.orientation.y = q[1]
+            _sst_input_Pose.orientation.z = q[2]
+            _sst_input_Pose.orientation.w = q[3]
 
-        # Convert the xyz position of the unit vector in quaternion
-        q = self._unitVector_to_quaternion(x,y,z)
+            self._sst_input_PoseArray.poses.append(_sst_input_Pose)
 
-        # Update the SST PoseStamped
-        self._sst_input_PoseStamped.pose.orientation.x = q[0]
-        self._sst_input_PoseStamped.pose.orientation.y = q[1]
-        self._sst_input_PoseStamped.pose.orientation.z = q[2]
-        self._sst_input_PoseStamped.pose.orientation.w = q[3]
-        self._sst_input_PoseStamped.header.frame_id = sst.header.frame_id
-        self._sst_input_PoseStamped.header.stamp = rospy.Time.now()
-
-        self._sst_pose_pub.publish(self._sst_input_PoseStamped)
+        self._sst_pose_pub.publish(self._sst_input_PoseArray)
 
     def _unitVector_to_quaternion(self, x, y, z):
         # Convert a xyz unit vector (point on a unit sphere) to quaternion
