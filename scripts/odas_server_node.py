@@ -9,8 +9,6 @@ import io
 
 import rospy
 
-import tf2_geometry_msgs, tf2_ros, tf_conversions
-import std_msgs.msg
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from audio_utils.msg import AudioFrame
 
@@ -34,7 +32,7 @@ class OdasServerNode:
             self._ssl_client_socket = None
             self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
             self._ssl_enabled = True
-        
+
         # Initialize SST (Sound Source Tracking) if configuration is correct.
         if self._verify_sst_configuration():
             self._sst_port = self._configuration['sst']['tracked']['interface']['port']
@@ -55,7 +53,7 @@ class OdasServerNode:
             self._sss_client_socket = None
             self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
             self._sss_enabled = True
-        
+
 
     def _load_configuration(self, configuration_path):
         with io.open(configuration_path) as f:
@@ -72,7 +70,7 @@ class OdasServerNode:
         else:
             return True
 
-    
+
     def _verify_sst_configuration(self):
         # If interface type is not socket, SST disabled.
         # If interface type is socket and the format is json, SST enabled.
@@ -132,7 +130,7 @@ class OdasServerNode:
 
                 data = data.decode('utf-8')
                 messages = data.split(']\n}\n')
-                
+
                 for message in messages:
                     message += ']\n}\n'
                     try:
@@ -177,7 +175,7 @@ class OdasServerNode:
 
                 data = data.decode('utf-8')
                 messages = data.split("]\n}\n")
-                
+
                 for i in range(0, len(messages)-1):
                     if i < len(messages)-1:
                         messages[i] += "]\n}\n"
@@ -257,9 +255,9 @@ class OdasServerNode:
                            "odas_ros",
                            "odas_core_node",
                            "_configuration_path:=" + rospy.get_param('~configuration_path')]
-                           
+
         odas_core_process = subprocess.Popen(executable_args, cwd=os.curdir)
-            
+
         rospy.spin()
 
         odas_core_process.terminate()
@@ -282,8 +280,8 @@ class OdasServerNode:
             if self._sss_client_socket is not None:
                 self._sss_client_socket.close()
             sss_thread.join()
-        
-        
+
+
 def main():
     rospy.init_node('odas_server_node')
     odas_server_node = OdasServerNode()
