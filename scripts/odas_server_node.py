@@ -130,11 +130,12 @@ class OdasServerNode:
 
                 data = data.decode('utf-8')
                 messages = data.split(']\n}\n')
+                messages.pop()  # remove last item which is only a newline character
 
                 for message in messages:
                     message += ']\n}\n'
                     try:
-                        ssl = json.loads(data)
+                        ssl = json.loads(message)
                         self._send_ssl(ssl)
                     except Exception as e:
                         print(e)
