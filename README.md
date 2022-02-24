@@ -61,7 +61,37 @@ For ODAS to locate and track sound sources, it needs to be configured. There is 
 
 Here are the important steps:
 
-### Sound card configuration
+### Input configuration
+#### Source configuration using pulseaudio
+At this part of the configuration file, you need to set the correct pulseaudio device and channel mapping.
+```
+# Input with raw signal from microphones
+    interface: {
+        type = "pulseaudio";
+        #"pacmd list-sources | grep 'name:' && pacmd list-sources | grep 'channel map:'" to see the sources and their channel mapping, in the same order
+        source = "alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multichannel-input";
+        channelnames = "front-left,front-right,rear-left,rear-right,front-center,lfe";
+        # Channels can also be specified as an array for better error messages when a channel position is not valid
+        # Only one method out of the two should be used
+        # channelmap = ("front-left", "front-right", "rear-left", "rear-right", "front-center", "lfe")
+```
+To know your source name, the easiest way it to use `pacmd list-sources | grep 'name:' && pacmd list-sources | grep 'channel map:'` in a terminal. The output should look something like this:
+```
+	name: <alsa_output.pci-0000_00_1f.3.analog-stereo.monitor>
+	name: <alsa_input.pci-0000_00_1f.3.analog-stereo>
+	name: <alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multichannel-input>
+	channel map: front-left,front-right
+	channel map: front-left,front-right
+	channel map: front-left,front-right,rear-left,rear-right,front-center,lfe
+```
+Note that the names and channel maps are in the same order.
+In this case, the source name is `alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multichannel-input` and the mapping is `front-left,front-right,rear-left,rear-right,front-center,lfe`.
+Some channel maps also have a shorter alias, but these are [not well documented](https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/blob/master/src/pulse/channelmap.c#L531)
+```
+channelnames = "surround-51";
+```
+
+#### Alternative: sound card configuration using ALSA
 At this part of the configuration file, you need to set the correct card and device number.
 ```
 # Input with raw signal from microphones
@@ -81,7 +111,7 @@ card 1: 8_sounds_usb [16SoundsUSB Audio 2.0], device 0: USB Audio [USB Audio]
 ```
 In this case, the card number is 1 and the device is 0 for the 16SoundsUSB audio card. So the device name should be: `"hw:CARD=1,DEV=0";`.
 
-### Mapping 
+### Mapping
 Depending on your configuration, you will need to map the microphones from the soundcard to the software. If you wish to use all microphones, then you can map all of them. For example, if there is 16 microphones and wish to use them all:
 ```
 mapping:
@@ -110,7 +140,7 @@ For ODAS to precisely locate and track a sound source, it needs to know precisel
         },
 ```
 
-For Microphone 1, `mu` is the position in x, y and z from the reference point. `sigma2` is the position variance in `xx, xy xz, yx, yy, yz, zx, zy, zz` this setting should mainly remain untouched. The `direction` parameter is the direction of the microphone. It should be a unit vector pointing in the direction that the microphone is pointing relative to the reference frame. The `angle` parameter is the maximum angle at which gain is 1 and minimum angle at which gain is 0. 
+For Microphone 1, `mu` is the position in x, y and z from the reference point. `sigma2` is the position variance in `xx, xy xz, yx, yy, yz, zx, zy, zz` this setting should mainly remain untouched. The `direction` parameter is the direction of the microphone. It should be a unit vector pointing in the direction that the microphone is pointing relative to the reference frame. The `angle` parameter is the maximum angle at which gain is 1 and minimum angle at which gain is 0.
 
 ### Sound Source Localization, Tracking and Separation
 ODAS can output the sound source localization, the source source tracking and the sound source separation:
@@ -171,15 +201,15 @@ separated: { #packaging and destination of the separated files
         #    type = "socket";
         #    ip = "127.0.0.1";
         #    port = 9001;
-        #}        
+        #}
     };
  ```
- 
+
  Note that if an interface type is set to "blackhole" and the format to "undefined", the associated topic won't be published.
- 
+
  ### Sound Source Tracking Threshold adjustment
- The default configuration file should be correct for most configuration. However, if the Sound Source Tracking does not work (i.e. the published topic `/odas/sst` does not contain any sources or the sources are indesirable) it may be because the threshold is not set correctly. 
- 
+ The default configuration file should be correct for most configuration. However, if the Sound Source Tracking does not work (i.e. the published topic `/odas/sst` does not contain any sources or the sources are indesirable) it may be because the threshold is not set correctly.
+
  In the Source Source Tracking section of the configuration file, there is a section with `active` and `inactive`:
  ```
  # Parameters used by both the Kalman and particle filter
@@ -192,6 +222,6 @@ separated: { #packaging and destination of the separated files
         { weight = 1.0; mu = 0.15; sigma2 = 0.0025 }
     );
  ```
- The `active` parameter represents the limit to consider a sound source active (high limit) and the`inactive` parameter is the lower limit at which a sound source is considered inactive. 
-* If `mu` is too high in the `active` and `inactive` parameters, few sound sources will be considered like active. 
+ The `active` parameter represents the limit to consider a sound source active (high limit) and the`inactive` parameter is the lower limit at which a sound source is considered inactive.
+* If `mu` is too high in the `active` and `inactive` parameters, few sound sources will be considered like active.
 * If `mu` in the `active` and `inactive` parameters are set too low, too much sound sources will be considered active.
