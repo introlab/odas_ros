@@ -6,6 +6,7 @@
   <arg name="rviz" default="false"/>
   <arg name="rviz_cfg" default="-d $(find odas_ros)/config/rviz/odas_rviz.rviz"/>
   <arg name="local" default="true" />
+  <arg name="force_publish_tf" default="false"/>
 
   <!-- ODAS -->
   <group ns="odas">
@@ -18,12 +19,16 @@
       <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="screen">
         <param name="configuration_path" value="$(arg configuration_path)"/>
       </node>
-      
+
       <!-- Position of frame ODAS relative to robot Base_link -->
-      <node if="$(arg rviz)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
+      <node if="$(eval arg('rviz') or arg('force_publish_tf'))" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
 
       <!--Run Rviz-->
       <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="$(arg rviz_cfg)"/>
+    </group>
+    <group unless="$(arg visualization)">
+      <!-- Position of frame ODAS relative to robot Base_link -->
+      <node if="$(arg force_publish_tf)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link odas 100" />
     </group>
   </group>
 </launch>
