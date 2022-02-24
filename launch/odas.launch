@@ -7,12 +7,20 @@
   <arg name="rviz_cfg" default="-d $(find odas_ros)/config/rviz/odas_rviz.rviz"/>
   <arg name="local" default="true" />
   <arg name="force_publish_tf" default="false"/>
+  <arg name="use_echo_cancellation" default="false"/>
+  <arg name="echo_cancelled_signal_topic" default="ec_signal"/>
 
   <!-- ODAS -->
   <group ns="odas">
-    <node pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
+    <node unless="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
+    </node>
+    <node if="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="screen">
+      <param name="configuration_path" value="$(arg configuration_path)"/>
+      <param name="frame_id" value="$(arg frame_id)"/>
+
+      <remap from="ec_signal" to="$(arg echo_cancelled_signal_topic)"/>
     </node>
 
     <group if="$(arg visualization)">
