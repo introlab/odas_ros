@@ -21,7 +21,7 @@ This package is a ROS package for [ODAS](https://github.com/introlab/odas).
 ## Prerequisites
 You will need CMake, GCC and the following external libraries:
 ```
-sudo apt-get install cmake gcc build-essential libfftw3-dev libconfig-dev libasound2-dev
+sudo apt-get install cmake gcc build-essential libfftw3-dev libconfig-dev libasound2-dev perl
 ```
 
 ODAS ROS uses the audio utilities from [AudioUtils](https://github.com/introlab/audio_utils) so it should be installed in your catkin workspace. If it is not already, here is how to do so:
@@ -70,12 +70,9 @@ At this part of the configuration file, you need to set the correct pulseaudio d
         type = "pulseaudio";
         #"pacmd list-sources | grep 'name:' && pacmd list-sources | grep 'channel map:'" to see the sources and their channel mapping, in the same order
         source = "alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multichannel-input";
-        channelnames = "front-left,front-right,rear-left,rear-right,front-center,lfe";
-        # Channels can also be specified as an array for better error messages when a channel position is not valid
-        # Only one method out of the two should be used
-        # channelmap = ("front-left", "front-right", "rear-left", "rear-right", "front-center", "lfe")
+        channelmap = ("front-left", "front-right", "rear-left", "rear-right", "front-center", "lfe");
 ```
-To know your source name, the easiest way it to use `pacmd list-sources | grep 'name:' && pacmd list-sources | grep 'channel map:'` in a terminal. The output should look something like this:
+To know your source name and channel mapping, the easiest way it to use `pacmd list-sources | grep 'name:' && pacmd list-sources | grep 'channel map:'` in a terminal. The output should look something like this:
 ```
 	name: <alsa_output.pci-0000_00_1f.3.analog-stereo.monitor>
 	name: <alsa_input.pci-0000_00_1f.3.analog-stereo>
@@ -86,10 +83,7 @@ To know your source name, the easiest way it to use `pacmd list-sources | grep '
 ```
 Note that the names and channel maps are in the same order.
 In this case, the source name is `alsa_input.usb-SEEED_ReSpeaker_4_Mic_Array__UAC1.0_-00.multichannel-input` and the mapping is `front-left,front-right,rear-left,rear-right,front-center,lfe`.
-Some channel maps also have a shorter alias, but these are [not well documented](https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/blob/master/src/pulse/channelmap.c#L531)
-```
-channelnames = "surround-51";
-```
+The mapping will need to be formated in a list: `front-left,front-right,rear-left,rear-right,front-center,lfe` will become `channelmap = ("front-left", "front-right", "rear-left", "rear-right", "front-center", "lfe");`
 
 #### Alternative: sound card configuration using ALSA
 At this part of the configuration file, you need to set the correct card and device number.

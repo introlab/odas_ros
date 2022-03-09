@@ -232,3 +232,11 @@ install(PROGRAMS
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+#######################
+## Required programs ##
+#######################
+find_program(perl "perl")
+if(${perl} STREQUAL "perl-NOTFOUND")
+    message(WARNING "'perl' needs to be installed for some scripts to work")
+endif()
