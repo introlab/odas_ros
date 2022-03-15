@@ -1,5 +1,4 @@
 # vscode tracking files
 .vscode/
-
-
-
+__pycache__
+*.pyc
