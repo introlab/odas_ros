@@ -4,7 +4,7 @@
 
 # $1 is the sound source name from "pacmd list-sources | grep 'name:'" without the angle brackets <>
 
-max=$(pactl list-sources | perl -n0777E "say \$1 if /^.*name: <$1>.*?base volume: ([0-9]+).*/s")
+max=$(pactl list sources | perl -n0777E "say \$1 if /^.*Name: $1.*?Base Volume: ([0-9]+).*/s")
 value=$(($2 * $max / 100))
 
 if [ -z "$value" ]; then

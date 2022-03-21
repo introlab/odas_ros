@@ -6,7 +6,7 @@
 
 pactl set-default-sink $1
 
-pactl list sink-inputs | grep index | while read line
+pactl list sink-inputs | grep "Sink Input #" | while read line
 do
-    pactl move-sink-input `echo $line | cut -f2 -d' '` $1 1> /dev/null
+    pactl move-sink-input `echo $line | cut -f2 -d'#'` $1 1> /dev/null
 done
