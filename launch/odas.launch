@@ -14,11 +14,11 @@
 
   <!-- ODAS -->
   <group ns="odas">
-    <node unless="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="$(arg output)">
+    <node unless="$(arg use_echo_cancellation)" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="$(arg output)">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
     </node>
-    <node if="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(arg output)">
+    <node if="$(arg use_echo_cancellation)" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(arg output)">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
 

@@ -12,4 +12,4 @@ if [ -z "$value" ]; then
     exit 1
 fi
 
-pacmd set-source-volume $1 $value
+pactl set-source-volume $1 $value
