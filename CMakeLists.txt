@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 
+# Let catkin choose where to install ODAS
+set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF)
+
 add_subdirectory(src/odas)
 
 project(odas_ros)
