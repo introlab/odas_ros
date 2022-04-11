@@ -8,7 +8,7 @@
 # $3 is a name for the resulting names, and it should not contain spaces
 #   -> Echo cancelled source name and description: $3_ec
 #   -> Echo cancelled sink name and description: $3_ec_sink
-# $4 is volume in percent to which the sink should be set, and is 100% by default
+# $4 is volume in percent to which the sink should be set
 
 source_name="$3_ec"
 sink_name="$3_ec_sink"
