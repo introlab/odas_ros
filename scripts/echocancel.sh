@@ -4,7 +4,7 @@
 
 # $1 is the sound source name from "pacmd list-sources | grep 'name:'"
 # $2 is the sound sink name from "pacmd list-sinks | grep 'name:'"
-#   -> Set to "default" to use the default sink
+#   -> Set to "__default" to use the default sink
 # $3 is a name for the resulting names, and it should not contain spaces
 #   -> Echo cancelled source name and description: $3_ec
 #   -> Echo cancelled sink name and description: $3_ec_sink
