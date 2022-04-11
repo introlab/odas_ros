@@ -4,9 +4,9 @@
 
 # $1 is the sound sink name from "pacmd list-sinks | grep 'name:'"
 
-pacmd set-default-sink $1
+pactl set-default-sink $1
 
-pacmd list-sink-inputs | grep index | while read line
+LC_ALL=C pactl list sink-inputs | grep "Sink Input #" | while read line
 do
-    pacmd move-sink-input `echo $line | cut -f2 -d' '` $1 1> /dev/null
+    pactl move-sink-input `echo $line | cut -f2 -d'#'` $1 1> /dev/null
 done

@@ -4,12 +4,18 @@
 
 # $1 is the sound source name from "pacmd list-sources | grep 'name:'" without the angle brackets <>
 
-max=$(pacmd list-sources | perl -n0777E "say \$1 if /^.*name: <$1>.*?base volume: ([0-9]+).*/s")
-value=$(($2 * $max / 100))
+max=$(LC_ALL=C pactl list sources | perl -n0777E "say \$1 if /^.*Name: $1.*?Base Volume: ([0-9]+).*/s")
 
-if [ -z "$value" ]; then
-    echo "Error: Could not find source $1"
+if [ -z "$max" ]; then
+    echo "Error: Could not find source $1" 1>&2
     exit 1
 fi
 
-pacmd set-source-volume $1 $value
+value=$(($2 * $max / 100))
+
+if [ -z "$value" ]; then
+    echo "Error: Could not find source $1" 1>&2
+    exit 1
+fi
+
+pactl set-source-volume $1 $value

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.13)
 
 # Let catkin choose where to install ODAS
-set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF)
+set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF CACHE BOOL "")
 
 add_subdirectory(src/odas)
 
