@@ -10,13 +10,15 @@
   <arg name="use_echo_cancellation" default="false"/>
   <arg name="echo_cancelled_signal_topic" default="ec_signal"/>
 
+  <arg name="output" default="log"/>
+
   <!-- ODAS -->
   <group ns="odas">
-    <node unless="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="screen">
+    <node unless="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="$(arg output)">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
     </node>
-    <node if="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="screen">
+    <node if="$(arg use_echo_cancellation" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(arg output)">
       <param name="configuration_path" value="$(arg configuration_path)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
 
@@ -24,7 +26,7 @@
     </node>
 
     <group if="$(arg visualization)">
-      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="screen">
+      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="$(arg output)">
         <param name="configuration_path" value="$(arg configuration_path)"/>
       </node>
 
