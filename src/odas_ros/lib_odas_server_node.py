@@ -287,7 +287,6 @@ class OdasServerNode:
 
         odas_core_process.terminate()
 
-        # Close sockets and join threads
         if self._raw_socket_server:
             self._raw_socket_server.close()
         if self._ssl_socket_server:
