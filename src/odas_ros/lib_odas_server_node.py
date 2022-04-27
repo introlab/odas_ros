@@ -1,6 +1,10 @@
+from abc import ABC, abstractmethod
 import json
 import socket
 import threading
+import os
+import subprocess
+import queue
 
 import libconf
 import io
@@ -10,133 +14,129 @@ import rospy
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from audio_utils.msg import AudioFrame
 
-import os
-import subprocess
+
+RAW_QUEUE_SIZE = 100
 
 
-class OdasServerNode:
-    def __init__(self):
-        # Load ODAS configuration
-        self._configuration = self._load_configuration(
-            rospy.get_param('~configuration_path'))
-        self._frame_id = rospy.get_param('~frame_id')
-        self._ssl_enabled = False
-        self._sst_enabled = False
-        self._sss_enabled = False
+def nbits_to_format(nbits):
+    if nbits == 8:
+        return 'signed_8'
+    elif nbits == 16:
+        return 'signed_16'
+    elif nbits == 32:
+        return 'signed_32'
+    else:
+        raise ValueError('Not supported format (nbits={})'.format(nbits))
 
-        # Initialize SSL (Sound Source Localization) if configuration is correct.
-        if self._verify_ssl_configuration():
-            self._ssl_port = self._configuration['ssl']['potential']['interface']['port']
-            self._ssl_server_socket = None
-            self._ssl_client_socket = None
-            self._ssl_pub = rospy.Publisher(
-                'ssl', OdasSslArrayStamped, queue_size=10)
-            self._ssl_enabled = True
 
-        # Initialize SST (Sound Source Tracking) if configuration is correct.
-        if self._verify_sst_configuration():
-            self._sst_port = self._configuration['sst']['tracked']['interface']['port']
-            self._sst_server_socket = None
-            self._sst_client_socket = None
-            self._sst_pub = rospy.Publisher(
-                'sst', OdasSstArrayStamped, queue_size=10)
-            self._sst_enabled = True
-
-        # Initialize SSS (Sound Source Separation) if configuration is correct.
-        if self._verify_sss_configuration():
-            self._sss_port = self._configuration['sss']['separated']['interface']['port']
-            self._sss_nbits = self._configuration['sss']['separated']['nBits']
-            self._sss_format = self._sss_nbits_to_sss_format(self._sss_nbits)
-            self._sss_channel_count = len(
-                self._configuration['sst']['N_inactive'])
-            self._sss_sampling_frequency = self._configuration['sss']['separated']['fS']
-            self._sss_frame_sample_count = self._configuration['sss']['separated']['hopSize']
-            self._sss_server_socket = None
-            self._sss_client_socket = None
-            self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=10)
-            self._sss_enabled = True
-
-    def _load_configuration(self, configuration_path):
-        with io.open(configuration_path) as f:
-            return libconf.load(f)
-
-    def _verify_ssl_configuration(self):
-        # If interface type is not socket, SSL disabled.
-        # If interface type is socket and the format is json, SSL enabled.
-        if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
-            return False
-        elif self._configuration['ssl']['potential']['format'] != 'json':
-            raise ValueError('The ssl format must be "json"')
-        else:
-            return True
-
-    def _verify_sst_configuration(self):
-        # If interface type is not socket, SST disabled.
-        # If interface type is socket and the format is json, SST enabled.
-        if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
-            return False
-        elif self._configuration['sst']['tracked']['format'] != 'json':
-            raise ValueError('The sst format must be "json"')
-        else:
-            return True
-
-    def _verify_sss_configuration(self):
-        # If interface type is not socket, SSS disabled.
-        # If interface type is socket, SSS enabled.
-        if self._configuration['sss']['separated']['interface']['type'] != 'socket':
-            return False
-        else:
-            return True
-
-    def _sss_nbits_to_sss_format(self, nbits):
-        if nbits == 8:
-            return 'signed_8'
-        elif nbits == 16:
-            return 'signed_16'
-        elif nbits == 32:
-            return 'signed_32'
-        else:
-            raise ValueError('Not supported format (nbits={})'.format(nbits))
-
-    def _create_server_socket(self, port):
+class SocketServer(ABC):
+    def __init__(self, port: int):
         rospy.loginfo("Creating server socket on port: " + str(port))
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.setsockopt(socket. SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind(('', port))
-        server_socket.listen(5)
-        server_socket.settimeout(0.1)
+        self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server_socket.setsockopt(socket. SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._server_socket.bind(('', port))
+        self._server_socket.listen(5)
+        self._server_socket.settimeout(0.1)
 
-        return server_socket
+        self._thread = threading.Thread(target=self._run)
+        self._is_stopped = True
 
-    def _ssl_thread_run(self):
-        self._ssl_server_socket = self._create_server_socket(self._ssl_port)
-        recv_size = 8192
+    def start(self):
+        self._is_stopped = False
+        self._thread.start()
 
-        while not rospy.is_shutdown():
+    def close(self):
+        self._is_stopped = True
+        self._server_socket.close()
+        self._thread.join()
+
+    def _run(self):
+         while not self._is_stopped:
             try:
-                self._ssl_client_socket, _ = self._ssl_server_socket.accept()
-            except socket.timeout:
+                client_socket, _ = self._server_socket.accept()
+            except (socket.timeout, OSError):
                 continue
 
-            while not rospy.is_shutdown():
-                data = self._ssl_client_socket.recv(recv_size)
-                if not data:
-                    break
+            try:
+                self._handle_client(client_socket)
+            finally:
+                client_socket.close()
 
-                data = data.decode('utf-8')
-                messages = data.split(']\n}\n')
-                messages.pop()  # remove last item which is only a newline character
+    @abstractmethod
+    def _handle_client(self, client_socket):
+        pass
 
-                for message in messages:
-                    message += ']\n}\n'
-                    try:
-                        ssl = json.loads(message)
-                        self._send_ssl(ssl)
-                    except Exception as e:
-                        print(e)
-                        continue
 
-    def _send_ssl(self, ssl):
+class RawSocketServer(SocketServer):
+    def __init__(self, configuration):
+        super().__init__(configuration['raw']['interface']['port'])
+
+        self._raw_nbits = configuration['raw']['nBits']
+        self._raw_format = nbits_to_format(self._raw_nbits)
+        self._raw_channel_count = configuration['raw']['nChannels']
+        self._raw_sampling_frequency = configuration['raw']['fS']
+        self._raw_frame_sample_count = configuration['raw']['hopSize']
+
+        self._raw_queue = queue.Queue(maxsize=RAW_QUEUE_SIZE)
+        self._raw_sub = rospy.Subscriber('raw', AudioFrame, self._raw_audio_cb, queue_size=RAW_QUEUE_SIZE)
+
+    def _raw_audio_cb(self, msg: AudioFrame):
+        if (msg.format != self._raw_format or
+            msg.channel_count != self._raw_channel_count or
+            msg.sampling_frequency != self._raw_sampling_frequency or
+            msg.frame_sample_count != self._raw_frame_sample_count):
+            rospy.logerr(
+                'Invalid frame (msg.format={}, msg.channel_count={}, msg.sampling_frequency={}, msg.frame_sample_count={})'
+                .format(msg.format, msg.channel_count, msg.sampling_frequency, msg.frame_sample_count))
+            return
+
+        self._raw_queue.put(msg.data)
+
+    def close(self):
+        self._is_stopped = True
+        self._raw_queue.put(None)
+        super().close()
+
+    def _handle_client(self, client_socket: socket.socket):
+        while not self._is_stopped:
+            data = self._raw_queue.get()
+            if data is None or client_socket.send(data) == 0:
+                break
+
+
+class JsonSocketServer(SocketServer):
+    def _handle_client(self, client_socket: socket.socket):
+        recv_size = 8192
+        while not self._is_stopped:
+            data = client_socket.recv(recv_size)
+            if not data:
+                break
+
+            data = data.decode('utf-8')
+            messages = data.split(']\n}\n')
+            messages.pop()  # remove last item which is only a newline character
+
+            for message in messages:
+                message += ']\n}\n'
+                try:
+                    data = json.loads(message)
+                    self._handle_data(data)
+                except Exception as e:
+                    rospy.logerr(e)
+                    continue
+
+    @abstractmethod
+    def _handle_data(self, data):
+        pass
+
+
+class SslSocketServer(JsonSocketServer):
+    def __init__(self, configuration, frame_id):
+        super().__init__(configuration['ssl']['potential']['interface']['port'])
+        self._frame_id = frame_id
+        self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
+
+    def _handle_data(self, ssl):
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
         odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
         odas_ssl_array_stamped_msg.header.stamp = rospy.Time.now()
@@ -152,35 +152,14 @@ class OdasServerNode:
 
         self._ssl_pub.publish(odas_ssl_array_stamped_msg)
 
-    def _sst_thread_run(self):
-        self._sst_server_socket = self._create_server_socket(self._sst_port)
-        recv_size = 8192
 
-        while not rospy.is_shutdown():
-            try:
-                self._sst_client_socket, _ = self._sst_server_socket.accept()
-            except socket.timeout:
-                continue
+class SstSocketServer(JsonSocketServer):
+    def __init__(self, configuration, frame_id):
+        super().__init__(configuration['sst']['tracked']['interface']['port'])
+        self._frame_id = frame_id
+        self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
 
-            while not rospy.is_shutdown():
-                data = self._sst_client_socket.recv(recv_size)
-                if not data:
-                    break
-
-                data = data.decode('utf-8')
-                messages = data.split("]\n}\n")
-
-                for i in range(0, len(messages)-1):
-                    if i < len(messages)-1:
-                        messages[i] += "]\n}\n"
-                    try:
-                        sst = json.loads(messages[i])
-                        self._send_sst(sst)
-                    except Exception as e:
-                        print(e)
-                        continue
-
-    def _send_sst(self, sst):
+    def _handle_data(self, sst):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
         odas_sst_array_stamped_msg.header.stamp = rospy.Time.now()
@@ -198,25 +177,29 @@ class OdasServerNode:
 
         self._sst_pub.publish(odas_sst_array_stamped_msg)
 
-    def _sss_thread_run(self):
-        self._sss_server_socket = self._create_server_socket(self._sss_port)
-        recv_size = self._sss_nbits // 8 * \
-            self._sss_channel_count * self._sss_frame_sample_count
 
-        while not rospy.is_shutdown():
-            try:
-                self._sss_client_socket, _ = self._sss_server_socket.accept()
-            except socket.timeout:
+class SssSocketServer(SocketServer):
+    def __init__(self, configuration):
+        super().__init__(configuration['sss']['separated']['interface']['port'])
+        self._sss_nbits = configuration['sss']['separated']['nBits']
+        self._sss_format = nbits_to_format(self._sss_nbits)
+        self._sss_channel_count = len(configuration['sst']['N_inactive'])
+        self._sss_sampling_frequency = configuration['sss']['separated']['fS']
+        self._sss_frame_sample_count = configuration['sss']['separated']['hopSize']
+
+        self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=100)
+
+    def _handle_client(self, client_socket: socket.socket):
+        recv_size = recv_size = self._sss_nbits // 8 * self._sss_channel_count * self._sss_frame_sample_count
+
+        while not self._is_stopped:
+            data = client_socket.recv(recv_size)
+            if not data:
+                break
+            elif len(data) != recv_size:
                 continue
-
-            while not rospy.is_shutdown():
-                data = self._sss_client_socket.recv(recv_size)
-                if not data:
-                    break
-                elif len(data) != recv_size:
-                    continue
-                else:
-                    self._send_sss(data)
+            else:
+                self._send_sss(data)
 
     def _send_sss(self, data):
         audio_frame_msg = AudioFrame()
@@ -227,20 +210,71 @@ class OdasServerNode:
         audio_frame_msg.data = data
         self._sss_pub.publish(audio_frame_msg)
 
+
+class OdasServerNode:
+    def __init__(self):
+        self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
+        frame_id = rospy.get_param('~frame_id')
+
+        if self._verify_raw_configuration():
+            self._raw_socket_server = RawSocketServer(self._configuration)
+        else:
+            self._raw_socket_server = None
+
+        if self._verify_ssl_configuration():
+            self._ssl_socket_server = SslSocketServer(self._configuration, frame_id)
+        else:
+            self._ssl_socket_server = None
+
+        if self._verify_sst_configuration():
+            self._sst_socket_server = SstSocketServer(self._configuration, frame_id)
+        else:
+            self._sst_socket_server = None
+
+        if self._verify_sss_configuration():
+            self._sss_socket_server = SssSocketServer(self._configuration)
+        else:
+            self._sss_socket_server = None
+
+    def _load_configuration(self, configuration_path):
+        with io.open(configuration_path) as f:
+            return libconf.load(f)
+
+    def _verify_raw_configuration(self):
+        return self._configuration['raw']['interface']['type'] == 'socket'
+
+    def _verify_ssl_configuration(self):
+        if self._configuration['ssl']['potential']['interface']['type'] != 'socket':
+            return False
+        elif self._configuration['ssl']['potential']['format'] != 'json':
+            raise ValueError('The ssl format must be "json"')
+        else:
+            return True
+
+    def _verify_sst_configuration(self):
+        if self._configuration['sst']['tracked']['interface']['type'] != 'socket':
+            return False
+        elif self._configuration['sst']['tracked']['format'] != 'json':
+            raise ValueError('The sst format must be "json"')
+        else:
+            return True
+
+    def _verify_sss_configuration(self):
+        return self._configuration['sss']['separated']['interface']['type'] == 'socket'
+
     def run(self):
-        # Open sockets and run threads
-        if self._ssl_enabled:
-            ssl_thread = threading.Thread(target=self._ssl_thread_run)
-            ssl_thread.start()
-            print("Sound Source Localization Started")
-        if self._sst_enabled:
-            sst_thread = threading.Thread(target=self._sst_thread_run)
-            sst_thread.start()
-            print("Sound Source Tracking Started")
-        if self._sss_enabled:
-            sss_thread = threading.Thread(target=self._sss_thread_run)
-            sss_thread.start()
-            print("Sound Source Separation Started")
+        if self._raw_socket_server:
+            self._raw_socket_server.start()
+            rospy.loginfo("Raw socket server started")
+        if self._ssl_socket_server:
+            self._ssl_socket_server.start()
+            rospy.loginfo("Sound Source Localization socket server started")
+        if self._sst_socket_server:
+            self._sst_socket_server.start()
+            rospy.loginfo("Sound Source Tracking socket server started")
+        if self._sss_socket_server:
+            self._sss_socket_server.start()
+            rospy.loginfo("Sound Source Separation socket server started")
 
         executable_args = ["rosrun",
                            "odas_ros",
@@ -254,20 +288,11 @@ class OdasServerNode:
         odas_core_process.terminate()
 
         # Close sockets and join threads
-        if self._ssl_enabled:
-            self._ssl_server_socket.close()
-            if self._ssl_client_socket is not None:
-                self._ssl_client_socket.close()
-            ssl_thread.join()
-
-        if self._sst_enabled:
-            self._sst_server_socket.close()
-            if self._sst_client_socket is not None:
-                self._sst_client_socket.close()
-            sst_thread.join()
-
-        if self._sss_enabled:
-            self._sss_server_socket.close()
-            if self._sss_client_socket is not None:
-                self._sss_client_socket.close()
-            sss_thread.join()
+        if self._raw_socket_server:
+            self._raw_socket_server.close()
+        if self._ssl_socket_server:
+            self._ssl_socket_server.close()
+        if self._sst_socket_server:
+            self._sst_socket_server.close()
+        if self._sss_socket_server:
+            self._sss_socket_server.close()

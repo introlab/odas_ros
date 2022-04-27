@@ -14,11 +14,9 @@ class OdasFilterEchocancelServerNode(OdasServerNode):
         self.energy = None
         self.inertia = 0.0
 
-        self._ec_signal_sub = rospy.Subscriber(
-            "ec_signal", AudioFrame, self._ec_signal_callback)
-        self._energy_threshold = rospy.get_param("~energy_threshold", 0.5)
-        self._energy_inertia = rospy.get_param(
-            "~energy_inertia", 20)
+        self._ec_signal_sub = rospy.Subscriber('ec_signal', AudioFrame, self._ec_signal_callback)
+        self._energy_threshold = rospy.get_param('~energy_threshold', 0.5)
+        self._energy_inertia = rospy.get_param('~energy_inertia', 20)
 
     @staticmethod
     def compute_energy(frame: AudioFrame) -> np.ndarray:
