@@ -27,3 +27,7 @@ pactl load-module module-echo-cancel source_master="$1" $sink_master_opt aec_met
 
 rosrun odas_ros movesinks.sh $sink_name
 rosrun odas_ros setvolume.sh $source_name $volume
+
+trap "echo \"Unloading module-echo-cancel\"; pactl unload-module module-echo-cancel" INT QUIT KILL TERM 
+
+sleep infinity
