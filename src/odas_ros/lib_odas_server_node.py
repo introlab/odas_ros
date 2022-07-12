@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
+import imp
 import json
 import socket
 import threading
 import os
 import subprocess
 import queue
+from typing import Dict, ByteString
 
 import libconf
 import io
@@ -68,7 +70,7 @@ class SocketServer(ABC):
 
 
 class RawSocketServer(SocketServer):
-    def __init__(self, configuration, audio_frame_timestamp_queue):
+    def __init__(self, configuration: Dict, audio_frame_timestamp_queue: queue.Queue):
         super().__init__(configuration['raw']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
 
@@ -134,12 +136,12 @@ class JsonSocketServer(SocketServer):
 
 
 class SslSocketServer(JsonSocketServer):
-    def __init__(self, configuration, frame_id):
+    def __init__(self, configuration: Dict, frame_id: str):
         super().__init__(configuration['ssl']['potential']['interface']['port'])
         self._frame_id = frame_id
         self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
 
-    def _handle_data(self, ssl):
+    def _handle_data(self, ssl: Dict):
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
         odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
         odas_ssl_array_stamped_msg.header.stamp = rospy.Time.now()
@@ -157,12 +159,12 @@ class SslSocketServer(JsonSocketServer):
 
 
 class SstSocketServer(JsonSocketServer):
-    def __init__(self, configuration, frame_id):
+    def __init__(self, configuration: Dict, frame_id: str):
         super().__init__(configuration['sst']['tracked']['interface']['port'])
         self._frame_id = frame_id
         self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
 
-    def _handle_data(self, sst):
+    def _handle_data(self, sst: Dict):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
         odas_sst_array_stamped_msg.header.stamp = rospy.Time.now()
@@ -182,7 +184,7 @@ class SstSocketServer(JsonSocketServer):
 
 
 class SssSocketServer(SocketServer):
-    def __init__(self, configuration, audio_frame_timestamp_queue, frame_id):
+    def __init__(self, configuration: Dict, audio_frame_timestamp_queue: queue.Queue, frame_id: str):
         super().__init__(configuration['sss']['separated']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
         self._frame_id = frame_id
@@ -207,7 +209,7 @@ class SssSocketServer(SocketServer):
             else:
                 self._send_sss(data)
 
-    def _send_sss(self, data):
+    def _send_sss(self, data: ByteString):
         audio_frame_msg = AudioFrame()
         audio_frame_msg.header.stamp = self._get_timestamp()
         audio_frame_msg.header.frame_id = self._frame_id
@@ -255,7 +257,7 @@ class OdasServerNode:
         else:
             self._sss_socket_server = None
 
-    def _load_configuration(self, configuration_path):
+    def _load_configuration(self, configuration_path: str):
         with io.open(configuration_path) as f:
             return libconf.load(f)
 
