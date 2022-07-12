@@ -68,8 +68,9 @@ class SocketServer(ABC):
 
 
 class RawSocketServer(SocketServer):
-    def __init__(self, configuration):
+    def __init__(self, configuration, audio_frame_timestamp_queue):
         super().__init__(configuration['raw']['interface']['port'])
+        self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
 
         self._raw_nbits = configuration['raw']['nBits']
         self._raw_format = nbits_to_format(self._raw_nbits)
@@ -90,6 +91,8 @@ class RawSocketServer(SocketServer):
                 .format(msg.format, msg.channel_count, msg.sampling_frequency, msg.frame_sample_count))
             return
 
+        if self._audio_frame_timestamp_queue is not None:
+            self._audio_frame_timestamp_queue.put(msg.header.stamp)
         self._raw_queue.put(msg.data)
 
     def close(self):
@@ -179,8 +182,11 @@ class SstSocketServer(JsonSocketServer):
 
 
 class SssSocketServer(SocketServer):
-    def __init__(self, configuration):
+    def __init__(self, configuration, audio_frame_timestamp_queue, frame_id):
         super().__init__(configuration['sss']['separated']['interface']['port'])
+        self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
+        self._frame_id = frame_id
+
         self._sss_nbits = configuration['sss']['separated']['nBits']
         self._sss_format = nbits_to_format(self._sss_nbits)
         self._sss_channel_count = len(configuration['sst']['N_inactive'])
@@ -203,6 +209,8 @@ class SssSocketServer(SocketServer):
 
     def _send_sss(self, data):
         audio_frame_msg = AudioFrame()
+        audio_frame_msg.header.stamp = self._get_timestamp()
+        audio_frame_msg.header.frame_id = self._frame_id
         audio_frame_msg.format = self._sss_format
         audio_frame_msg.channel_count = self._sss_channel_count
         audio_frame_msg.sampling_frequency = self._sss_sampling_frequency
@@ -210,14 +218,25 @@ class SssSocketServer(SocketServer):
         audio_frame_msg.data = data
         self._sss_pub.publish(audio_frame_msg)
 
+    def _get_timestamp(self):
+        if self._audio_frame_timestamp_queue is None:
+            return rospy.Time.now()
+        else:
+            return self._audio_frame_timestamp_queue.get()
+
 
 class OdasServerNode:
     def __init__(self):
         self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
         frame_id = rospy.get_param('~frame_id')
 
+        if self._verify_raw_and_sss_configuration():
+            audio_frame_timestamp_queue = queue.Queue()
+        else:
+            audio_frame_timestamp_queue = None
+
         if self._verify_raw_configuration():
-            self._raw_socket_server = RawSocketServer(self._configuration)
+            self._raw_socket_server = RawSocketServer(self._configuration, audio_frame_timestamp_queue)
         else:
             self._raw_socket_server = None
 
@@ -232,7 +251,7 @@ class OdasServerNode:
             self._sst_socket_server = None
 
         if self._verify_sss_configuration():
-            self._sss_socket_server = SssSocketServer(self._configuration)
+            self._sss_socket_server = SssSocketServer(self._configuration, audio_frame_timestamp_queue, frame_id)
         else:
             self._sss_socket_server = None
 
@@ -261,6 +280,18 @@ class OdasServerNode:
 
     def _verify_sss_configuration(self):
         return self._configuration['sss']['separated']['interface']['type'] == 'socket'
+
+    def _verify_raw_and_sss_configuration(self):
+        if (self._configuration['raw']['interface']['type'] != 'socket' or
+            self._configuration['sss']['separated']['interface']['type'] != 'socket'):
+            return False
+
+        if self._configuration['raw']['fS'] != self._configuration['sss']['separated']['fS']:
+            raise ValueError('Raw and sss sampling frequencies must match.')
+        if self._configuration['raw']['hopSize'] != self._configuration['sss']['separated']['hopSize']:
+            raise ValueError('Raw and sss hop sizes must match.')
+
+        return True
 
     def run(self):
         if self._raw_socket_server:
