@@ -109,6 +109,11 @@ class RawSocketServer(SocketServer):
 
 
 class JsonSocketServer(SocketServer):
+
+    def __init__(self, port: int):
+        super().__init__(port)
+        self._json_buffer = str()
+
     def _handle_client(self, client_socket: socket.socket):
         recv_size = 8192
         while not self._is_stopped:
@@ -117,17 +122,37 @@ class JsonSocketServer(SocketServer):
                 break
 
             data = data.decode('utf-8')
-            messages = data.split(']\n}\n')
-            messages.pop()  # remove last item which is only a newline character
 
-            for message in messages:
-                message += ']\n}\n'
+            for message in self._split_json(data):
                 try:
                     data = json.loads(message)
                     self._handle_data(data)
                 except Exception as e:
-                    rospy.logerr(e)
+                    rospy.logerr(str(type(self)) + str(e) + 'message: ' + message + ' *** data: ' + data)
                     continue
+
+    def _split_json(self, data: str):
+        self._json_buffer += data
+        json_start_index = 0
+        json_stop_index = 0
+        depth = 0
+
+        for i, c in enumerate(self._json_buffer):
+            if c == '}' and depth == 0:
+                continue
+            elif c == '{':
+                depth += 1
+                if depth == 1:
+                    json_start_index = i
+
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    # We have a complete struct
+                    json_stop_index = i + 1
+                    yield self._json_buffer[json_start_index:json_stop_index]
+
+        self._json_buffer = self._json_buffer[json_stop_index:]
 
     @abstractmethod
     def _handle_data(self, data):
