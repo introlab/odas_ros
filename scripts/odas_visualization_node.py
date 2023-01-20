@@ -63,38 +63,31 @@ class OdasVisualizationNode:
 
     def _ssl_cb(self, ssl):
         # Sound Source Localization Callback (ODAS)
-        if len(ssl.sources) == 0:
-            return
-
-        if len(ssl.sources) > 0:
-            cloud_points = []
-            for source in ssl.sources:
-                # Extract xyz position of potential sound source on unit sphere from Sound Source Localization
-                point = [source.x, source.y, source.z, source.E]
-                cloud_points.append(point)
-            #header
-            header = std_msgs.msg.Header()
-            header.stamp = rospy.Time.now()
-            header.frame_id = ssl.header.frame_id
-            #fields
-            fields = [ PointField('x', 0, PointField.FLOAT32, 1),
-                       PointField('y', 4, PointField.FLOAT32, 1),
-                       PointField('z', 8, PointField.FLOAT32, 1),
-                       PointField('intensity', 12, PointField.FLOAT32, 1)]
-            #create pcl from points
-            pcl = pcl2.create_cloud(header,fields,cloud_points)
-            self._ssl_pcl_pub.publish(pcl)
+        cloud_points = []
+        for source in ssl.sources:
+            # Extract xyz position of potential sound source on unit sphere from Sound Source Localization
+            point = [source.x, source.y, source.z, source.E]
+            cloud_points.append(point)
+        #header
+        header = std_msgs.msg.Header()
+        header.stamp = rospy.Time.now()
+        header.frame_id = ssl.header.frame_id
+        #fields
+        fields = [ PointField('x', 0, PointField.FLOAT32, 1),
+                    PointField('y', 4, PointField.FLOAT32, 1),
+                    PointField('z', 8, PointField.FLOAT32, 1),
+                    PointField('intensity', 12, PointField.FLOAT32, 1)]
+        #create pcl from points
+        pcl = pcl2.create_cloud(header,fields,cloud_points)
+        self._ssl_pcl_pub.publish(pcl)
 
 
     def _sst_cb(self, sst):
         # Sound Source Tracking Callback (ODAS)
-        if len(sst.sources) == 0:
-            return
-
         self._sst_input_PoseArray.header.stamp = rospy.Time.now()
         self._sst_input_PoseArray.header.frame_id = sst.header.frame_id
         self._sst_input_PoseArray.poses = []
-            
+
         for src in sst.sources:
             q = self._unit_vector_to_quaternion(src.x, src.y, src.z)
 
