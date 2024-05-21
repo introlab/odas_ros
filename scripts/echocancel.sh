@@ -25,9 +25,9 @@ fi
 
 pactl load-module module-echo-cancel source_master="$1" $sink_master_opt aec_method=webrtc source_name=$source_name sink_name=$sink_name use_master_format=yes source_properties=device.description=$source_name sink_properties=device.description=$sink_name 1> /dev/null
 
-rosrun odas_ros movesinks.sh $sink_name
-rosrun odas_ros setvolume.sh $source_name $volume
+ros2 run odas_ros movesinks.sh $sink_name
+ros2 run odas_ros setvolume.sh $source_name $volume
 
-trap "echo \"Unloading module-echo-cancel\"; pactl unload-module module-echo-cancel" INT QUIT KILL TERM 
+trap "echo \"Unloading module-echo-cancel\"; pactl unload-module module-echo-cancel" INT QUIT KILL TERM
 
 sleep infinity

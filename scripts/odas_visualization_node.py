@@ -1,37 +1,70 @@
 #!/usr/bin/env python2
+import math
 
-import rospy
+import rclpy
+import rclpy.node
 
 import numpy as np
 import io
 import libconf
 
 import std_msgs.msg
-import tf_conversions
 
 import sensor_msgs.point_cloud2 as pcl2
 from odas_ros.msg import OdasSstArrayStamped, OdasSslArrayStamped
 from  geometry_msgs.msg import PoseArray, Pose
 from sensor_msgs.msg import PointCloud2, PointField
 
-class OdasVisualizationNode:
+
+# This function is a stripped down version of the code in
+# https://github.com/matthew-brett/transforms3d/blob/f185e866ecccb66c545559bc9f2e19cb5025e0ab/transforms3d/euler.py
+# Besides simplifying it, this version also inverts the order to return x,y,z,w, which is
+# the way that ROS prefers it.
+def quaternion_from_euler(ai, aj, ak):
+    ai /= 2.0
+    aj /= 2.0
+    ak /= 2.0
+    ci = math.cos(ai)
+    si = math.sin(ai)
+    cj = math.cos(aj)
+    sj = math.sin(aj)
+    ck = math.cos(ak)
+    sk = math.sin(ak)
+    cc = ci*ck
+    cs = ci*sk
+    sc = si*ck
+    ss = si*sk
+
+    q = np.empty((4, ))
+    q[0] = cj*sc - sj*cs
+    q[1] = cj*ss + sj*cc
+    q[2] = cj*cs - sj*sc
+    q[3] = cj*cc + sj*ss
+
+    return q
+
+
+class OdasVisualizationNode(rclpy.node.Node):
     def __init__(self):
+        super().__init__('odas_visualization_node')
+
         # Load ODAS configuration
-        self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
+        configuration_path = self.declare_parameter('configuration_path', '').get_parameter_value().string_value
+        self._configuration = self._load_configuration(configuration_path)
 
         if self._verify_sst_configuration():
             # Stamped Pose Message containing the converted Sound Source Tracking (SST) position from ODAS.
             self._sst_input_PoseArray = PoseArray()
             # Subscribe to the Sound Source Tracking from ODAS Server
-            self._sst_sub = rospy.Subscriber('sst', OdasSstArrayStamped, self._sst_cb, queue_size=10)
+            self._sst_sub = self.create_subscription(OdasSstArrayStamped, 'sst', self._sst_cb, 10)
             # ODAS SST Publisher for PoseStamped
-            self._sst_pose_pub = rospy.Publisher('sst_poses', PoseArray, queue_size=10)
+            self._sst_pose_pub = self.create_publisher(PoseArray, 'sst_poses', 10)
 
         if self._verify_ssl_configuration():
             # Subscribe to the Sound Source Localization and Sound Source Tracking from ODAS Server
-            self._ssl_sub = rospy.Subscriber('ssl', OdasSslArrayStamped, self._ssl_cb, queue_size=10)
+            self._ssl_sub = self.create_subscription(OdasSslArrayStamped, 'ssl', self._ssl_cb, 10)
             # ODAS SSL Publisher for PointCloud2
-            self._ssl_pcl_pub = rospy.Publisher("ssl_pcl2", PointCloud2, queue_size=500)
+            self._ssl_pcl_pub = self.create_publisher(PointCloud2, 'ssl_pcl2', 500)
 
 
     def _load_configuration(self, configuration_path):
@@ -70,7 +103,7 @@ class OdasVisualizationNode:
             cloud_points.append(point)
         #header
         header = std_msgs.msg.Header()
-        header.stamp = rospy.Time.now()
+        header.stamp = self.get_clock().now()
         header.frame_id = ssl.header.frame_id
         #fields
         fields = [ PointField('x', 0, PointField.FLOAT32, 1),
@@ -84,7 +117,7 @@ class OdasVisualizationNode:
 
     def _sst_cb(self, sst):
         # Sound Source Tracking Callback (ODAS)
-        self._sst_input_PoseArray.header.stamp = rospy.Time.now()
+        self._sst_input_PoseArray.header.stamp = self.get_clock().now()
         self._sst_input_PoseArray.header.frame_id = sst.header.frame_id
         self._sst_input_PoseArray.poses = []
 
@@ -111,22 +144,26 @@ class OdasVisualizationNode:
         yaw = np.arctan2(y,x)
         pitch = -np.arctan2(z,np.sqrt(x*x+y*y))
         roll = 0
-        q = tf_conversions.transformations.quaternion_from_euler(roll, pitch, yaw)
+        q = quaternion_from_euler(roll, pitch, yaw)
         return q
 
 
     def run(self):
-        rospy.spin()
+        rclpy.spin(self)
 
 
 def main():
-    rospy.init_node('odas_visualization_node')
+    rclpy.init()
+
     odas_visualization_node = OdasVisualizationNode()
     odas_visualization_node.run()
+
+    odas_visualization_node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
     try:
         main()
-    except rospy.ROSInterruptException:
+    except KeyboardInterrupt:
         pass

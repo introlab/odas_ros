@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import rospy
+import rclpy
 import numpy as np
 
 from odas_ros.lib_odas_server_node import OdasServerNode, OdasSstArrayStamped
@@ -10,13 +10,13 @@ from audio_utils import AudioFrame, convert_audio_data_to_numpy_frames, get_form
 class OdasFilterEchocancelServerNode(OdasServerNode):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('odas_server_node')
         self.energy = None
         self.inertia = 0.0
 
-        self._ec_signal_sub = rospy.Subscriber('ec_signal', AudioFrame, self._ec_signal_callback)
-        self._energy_threshold = rospy.get_param('~energy_threshold', 0.5)
-        self._energy_inertia = rospy.get_param('~energy_inertia', 20)
+        self._ec_signal_sub = self.create_subscription(AudioFrame, 'ec_signal', self._ec_signal_callback, 10)
+        self._energy_threshold = self.declare_parameter('energy_threshold', 0.5).get_parameter_value().double_value
+        self._energy_inertia = self.declare_parameter('energy_inertia', 20).get_parameter_value().integer_value
 
     @staticmethod
     def compute_energy(frame: AudioFrame) -> np.ndarray:
@@ -45,20 +45,24 @@ class OdasFilterEchocancelServerNode(OdasServerNode):
     def _send_empty_sst_array(self, sst):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
-        odas_sst_array_stamped_msg.header.stamp = rospy.Time.now()
+        odas_sst_array_stamped_msg.header.stamp = self.get_clock().now()
         odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
         self._sst_pub.publish(odas_sst_array_stamped_msg)
 
 
 def main():
-    rospy.init_node('odas_server_node')
+    rclpy.init()
+
     odas_server_node = OdasFilterEchocancelServerNode()
     odas_server_node.run()
+
+    odas_server_node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
     try:
         main()
-    except rospy.ROSInterruptException:
+    except KeyboardInterrupt:
         pass

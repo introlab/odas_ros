@@ -1,9 +1,9 @@
-#include "ros/ros.h"
-#include "std_msgs/String.h"
+#include <rclcpp/rclcpp.hpp>
+
 #include <string>
 
 //From odas demo client
-extern "C" 
+extern "C"
 {
     #include <odas.h>
     #include <parameters.h>
@@ -15,83 +15,83 @@ extern "C"
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "odas_core_node");
-    ros::NodeHandle privateNodeHandle("~");
+    rclcpp::init(argc, argv);
 
-    std::string configFile;
-    privateNodeHandle.getParam("configuration_path", configFile);
+    auto node = rclcpp::Node::make_shared("odas_core_node");
 
-    ROS_INFO("Using configuration file = %s", configFile.c_str());
+    std::string configFile = node->declare_parameter("configuration_path", "");
+
+    RCLCPP_INFO(node->get_logger(), "Using configuration file = %s", configFile.c_str());
 
     // +------------------------------------------------------+
     // | Multiple threads                                     |
-    // +------------------------------------------------------+  
+    // +------------------------------------------------------+
 
 
 
     // +----------------------------------------------------------+
     // | Variables                                                |
-    // +----------------------------------------------------------+  
+    // +----------------------------------------------------------+
 
 
     // +------------------------------------------------------+
     // | Objects                                              |
-    // +------------------------------------------------------+   
-    objects * objs = NULL;
+    // +------------------------------------------------------+
     aobjects * aobjs = NULL;
 
     // +------------------------------------------------------+
     // | Configurations                                       |
-    // +------------------------------------------------------+        
-    configs * cfgs = NULL;   
+    // +------------------------------------------------------+
+    configs * cfgs = NULL;
 
 
     // +--------------------------------------------------+
     // | Configure                                        |
-    // +--------------------------------------------------+ 
-    ROS_INFO("| + Initializing configurations...... ");
+    // +--------------------------------------------------+
+    RCLCPP_INFO(node->get_logger(), "| + Initializing configurations...... ");
     cfgs = configs_construct(configFile.c_str());
 
 
 
     // +--------------------------------------------------+
     // | Construct                                        |
-    // +--------------------------------------------------+ 
-    ROS_INFO("| + Initializing objects............. ");
-    aobjs = aobjects_construct(cfgs);    
+    // +--------------------------------------------------+
+    RCLCPP_INFO(node->get_logger(), "| + Initializing objects............. ");
+    aobjs = aobjects_construct(cfgs);
 
 
 
     // +--------------------------------------------------+
     // | Launch threads                                   |
-    // +--------------------------------------------------+  
-    ROS_INFO("| + Launch threads................... ");
+    // +--------------------------------------------------+
+    RCLCPP_INFO(node->get_logger(), "| + Launch threads................... ");
     threads_multiple_start(aobjs);
 
 
-    ROS_INFO("| + ROS SPINNING................... ");
-            
+    RCLCPP_INFO(node->get_logger(), "| + ROS SPINNING................... ");
+
     //Start ros loop
-    ros::spin();
+    rclcpp::spin(node);
 
     // +--------------------------------------------------+
     // | Wait                                             |
     // +--------------------------------------------------+
-    ROS_INFO("| + Threads join.................. "); 
+    RCLCPP_INFO(node->get_logger(), "| + Threads join.................. ");
     threads_multiple_join(aobjs);
 
 
 
     // +--------------------------------------------------+
     // | Free memory                                      |
-    // +--------------------------------------------------+ 
-    ROS_INFO("| + Free memory...................... "); 
+    // +--------------------------------------------------+
+    RCLCPP_INFO(node->get_logger(), "| + Free memory...................... ");
 
 
     aobjects_destroy(aobjs);
     configs_destroy(cfgs);
-    ROS_INFO("Done!");
+    RCLCPP_INFO(node->get_logger(), "Done!");
 
+    rclcpp::shutdown();
 
     return 0;
 }

@@ -10,13 +10,15 @@ from typing import ByteString
 import libconf
 import io
 
-import rospy
+import rclpy
+import rclpy.node
 
 from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from audio_utils.msg import AudioFrame
 
 
-RAW_QUEUE_SIZE = 100
+AUDIO_QUEUE_SIZE = 100
+SSL_SST_QUEUE_SIZE = 10
 
 
 def nbits_to_format(nbits):
@@ -31,8 +33,9 @@ def nbits_to_format(nbits):
 
 
 class SocketServer(ABC):
-    def __init__(self, port: int):
-        rospy.loginfo("Creating server socket on port: " + str(port))
+    def __init__(self, node: rclpy.node.Node, port: int):
+        self._node = node
+        self._node.get_logger().info("Creating server socket on port: " + str(port))
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.setsockopt(socket. SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._server_socket.bind(('', port))
@@ -69,8 +72,8 @@ class SocketServer(ABC):
 
 
 class RawSocketServer(SocketServer):
-    def __init__(self, configuration: dict, audio_frame_timestamp_queue: queue.Queue):
-        super().__init__(configuration['raw']['interface']['port'])
+    def __init__(self, node: rclpy.node.Node, configuration: dict, audio_frame_timestamp_queue: queue.Queue):
+        super().__init__(node, configuration['raw']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
 
         self._raw_nbits = configuration['raw']['nBits']
@@ -79,15 +82,15 @@ class RawSocketServer(SocketServer):
         self._raw_sampling_frequency = configuration['raw']['fS']
         self._raw_frame_sample_count = configuration['raw']['hopSize']
 
-        self._raw_queue = queue.Queue(maxsize=RAW_QUEUE_SIZE)
-        self._raw_sub = rospy.Subscriber('raw', AudioFrame, self._raw_audio_cb, queue_size=RAW_QUEUE_SIZE)
+        self._raw_queue = queue.Queue(maxsize=AUDIO_QUEUE_SIZE)
+        self._raw_sub = self._node.create_subscription(AudioFrame, 'raw', self._raw_audio_cb, AUDIO_QUEUE_SIZE)
 
     def _raw_audio_cb(self, msg: AudioFrame):
         if (msg.format != self._raw_format or
             msg.channel_count != self._raw_channel_count or
             msg.sampling_frequency != self._raw_sampling_frequency or
             msg.frame_sample_count != self._raw_frame_sample_count):
-            rospy.logerr(
+            self._node.get_logger().error(
                 'Invalid frame (msg.format={}, msg.channel_count={}, msg.sampling_frequency={}, msg.frame_sample_count={})'
                 .format(msg.format, msg.channel_count, msg.sampling_frequency, msg.frame_sample_count))
             return
@@ -110,8 +113,8 @@ class RawSocketServer(SocketServer):
 
 class JsonSocketServer(SocketServer):
 
-    def __init__(self, port: int):
-        super().__init__(port)
+    def __init__(self, node: rclpy.node.Node, port: int):
+        super().__init__(node, port)
         self._json_buffer = str()
 
     def _handle_client(self, client_socket: socket.socket):
@@ -128,7 +131,7 @@ class JsonSocketServer(SocketServer):
                     data = json.loads(message)
                     self._handle_data(data)
                 except Exception as e:
-                    rospy.logerr(str(type(self)) + str(e) + 'message: ' + message + ' *** data: ' + data)
+                    self._node.get_logger().error(str(type(self)) + str(e) + 'message: ' + message + ' *** data: ' + data)
                     continue
 
     def _split_json(self, data: str):
@@ -160,15 +163,15 @@ class JsonSocketServer(SocketServer):
 
 
 class SslSocketServer(JsonSocketServer):
-    def __init__(self, configuration: dict, frame_id: str):
-        super().__init__(configuration['ssl']['potential']['interface']['port'])
+    def __init__(self, node: rclpy.node.Node, configuration: dict, frame_id: str):
+        super().__init__(node, configuration['ssl']['potential']['interface']['port'])
         self._frame_id = frame_id
-        self._ssl_pub = rospy.Publisher('ssl', OdasSslArrayStamped, queue_size=10)
+        self._ssl_pub = self._node.create_publisher(OdasSslArrayStamped, 'ssl', SSL_SST_QUEUE_SIZE)
 
     def _handle_data(self, ssl: dict):
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
         odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
-        odas_ssl_array_stamped_msg.header.stamp = rospy.Time.now()
+        odas_ssl_array_stamped_msg.header.stamp = self._node.get_clock().now()
         odas_ssl_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in ssl['src']:
@@ -176,22 +179,22 @@ class SslSocketServer(JsonSocketServer):
             odas_ssl.x = source['x']
             odas_ssl.y = source['y']
             odas_ssl.z = source['z']
-            odas_ssl.E = source['E']
+            odas_ssl.e = source['E']
             odas_ssl_array_stamped_msg.sources.append(odas_ssl)
 
         self._ssl_pub.publish(odas_ssl_array_stamped_msg)
 
 
 class SstSocketServer(JsonSocketServer):
-    def __init__(self, configuration: dict, frame_id: str):
-        super().__init__(configuration['sst']['tracked']['interface']['port'])
+    def __init__(self, node: rclpy.node.Node, configuration: dict, frame_id: str):
+        super().__init__(node, configuration['sst']['tracked']['interface']['port'])
         self._frame_id = frame_id
-        self._sst_pub = rospy.Publisher('sst', OdasSstArrayStamped, queue_size=10)
+        self._sst_pub = self._node.create_publisher(OdasSstArrayStamped, 'sst', SSL_SST_QUEUE_SIZE)
 
     def _handle_data(self, sst: dict):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
-        odas_sst_array_stamped_msg.header.stamp = rospy.Time.now()
+        odas_sst_array_stamped_msg.header.stamp = self._node.get_clock().now()
         odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in sst['src']:
@@ -208,8 +211,8 @@ class SstSocketServer(JsonSocketServer):
 
 
 class SssSocketServer(SocketServer):
-    def __init__(self, configuration: dict, audio_frame_timestamp_queue: queue.Queue, frame_id: str):
-        super().__init__(configuration['sss']['separated']['interface']['port'])
+    def __init__(self, node: rclpy.node.Node, configuration: dict, audio_frame_timestamp_queue: queue.Queue, frame_id: str):
+        super().__init__(node, configuration['sss']['separated']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
         self._frame_id = frame_id
 
@@ -219,7 +222,7 @@ class SssSocketServer(SocketServer):
         self._sss_sampling_frequency = configuration['sss']['separated']['fS']
         self._sss_frame_sample_count = configuration['sss']['separated']['hopSize']
 
-        self._sss_pub = rospy.Publisher('sss', AudioFrame, queue_size=100)
+        self._sss_pub = self._node.create_publisher(AudioFrame, 'sss', AUDIO_QUEUE_SIZE)
 
     def _handle_client(self, client_socket: socket.socket):
         recv_size = recv_size = self._sss_nbits // 8 * self._sss_channel_count * self._sss_frame_sample_count
@@ -246,15 +249,18 @@ class SssSocketServer(SocketServer):
 
     def _get_timestamp(self):
         if self._audio_frame_timestamp_queue is None:
-            return rospy.Time.now()
+            return self._node.get_clock().now()
         else:
             return self._audio_frame_timestamp_queue.get()
 
 
-class OdasServerNode:
-    def __init__(self):
-        self._configuration = self._load_configuration(rospy.get_param('~configuration_path'))
-        frame_id = rospy.get_param('~frame_id')
+class OdasServerNode(rclpy.node.Node):
+    def __init__(self, node_name: str):
+        super().__init__(node_name)
+
+        self._configuration_path = self.declare_parameter('configuration_path', '').get_parameter_value().string_value
+        self._configuration = self._load_configuration(self._configuration_path)
+        frame_id = self.declare_parameter('frame_id', '').get_parameter_value().string_value
 
         if self._verify_raw_and_sss_configuration():
             audio_frame_timestamp_queue = queue.Queue()
@@ -262,22 +268,22 @@ class OdasServerNode:
             audio_frame_timestamp_queue = None
 
         if self._verify_raw_configuration():
-            self._raw_socket_server = RawSocketServer(self._configuration, audio_frame_timestamp_queue)
+            self._raw_socket_server = RawSocketServer(self, self._configuration, audio_frame_timestamp_queue)
         else:
             self._raw_socket_server = None
 
         if self._verify_ssl_configuration():
-            self._ssl_socket_server = SslSocketServer(self._configuration, frame_id)
+            self._ssl_socket_server = SslSocketServer(self, self._configuration, frame_id)
         else:
             self._ssl_socket_server = None
 
         if self._verify_sst_configuration():
-            self._sst_socket_server = SstSocketServer(self._configuration, frame_id)
+            self._sst_socket_server = SstSocketServer(self, self._configuration, frame_id)
         else:
             self._sst_socket_server = None
 
         if self._verify_sss_configuration():
-            self._sss_socket_server = SssSocketServer(self._configuration, audio_frame_timestamp_queue, frame_id)
+            self._sss_socket_server = SssSocketServer(self, self._configuration, audio_frame_timestamp_queue, frame_id)
         else:
             self._sss_socket_server = None
 
@@ -322,25 +328,26 @@ class OdasServerNode:
     def run(self):
         if self._raw_socket_server:
             self._raw_socket_server.start()
-            rospy.loginfo("Raw socket server started")
+            self.get_logger().info("Raw socket server started")
         if self._ssl_socket_server:
             self._ssl_socket_server.start()
-            rospy.loginfo("Sound Source Localization socket server started")
+            self.get_logger().info("Sound Source Localization socket server started")
         if self._sst_socket_server:
             self._sst_socket_server.start()
-            rospy.loginfo("Sound Source Tracking socket server started")
+            self.get_logger().info("Sound Source Tracking socket server started")
         if self._sss_socket_server:
             self._sss_socket_server.start()
-            rospy.loginfo("Sound Source Separation socket server started")
+            self.get_logger().info("Sound Source Separation socket server started")
 
-        executable_args = ["rosrun",
+        executable_args = ["ros2",
+                           "run"
                            "odas_ros",
                            "odas_core_node",
-                           "_configuration_path:=" + rospy.get_param('~configuration_path')]
+                           "configuration_path:=" + self._configuration_path]
 
         odas_core_process = subprocess.Popen(executable_args, cwd=os.curdir)
 
-        rospy.spin()
+        rclpy.spin(self)
 
         odas_core_process.terminate()
 

@@ -1,6 +1,8 @@
 # odas_ros
 
-This package is a ROS package for [ODAS](https://github.com/introlab/odas).
+This package is a ROS2 package for [ODAS](https://github.com/introlab/odas).
+
+For ROS1, please see the `main-ros1` branch.
 
 [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
 
@@ -22,7 +24,7 @@ This package is a ROS package for [ODAS](https://github.com/introlab/odas).
 ## Prerequisites
 You will need CMake, GCC and the following external libraries:
 ```
-sudo apt-get install cmake gcc build-essential libfftw3-dev libconfig-dev libasound2-dev libpulse-dev libgfortran-*-dev perl 
+sudo apt-get install cmake gcc build-essential libfftw3-dev libconfig-dev libasound2-dev libpulse-dev libgfortran-*-dev perl
 ```
 
 ODAS ROS uses the audio utilities from [AudioUtils](https://github.com/introlab/audio_utils) so it should be installed in your catkin workspace. If it is not already, here is how to do so:
