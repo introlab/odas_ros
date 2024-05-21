@@ -103,7 +103,7 @@ class OdasVisualizationNode(rclpy.node.Node):
             cloud_points.append(point)
         #header
         header = std_msgs.msg.Header()
-        header.stamp = self.get_clock().now()
+        header.stamp = self.get_clock().now().to_msg()
         header.frame_id = ssl.header.frame_id
         #fields
         fields = [ PointField('x', 0, PointField.FLOAT32, 1),
@@ -117,7 +117,7 @@ class OdasVisualizationNode(rclpy.node.Node):
 
     def _sst_cb(self, sst):
         # Sound Source Tracking Callback (ODAS)
-        self._sst_input_PoseArray.header.stamp = self.get_clock().now()
+        self._sst_input_PoseArray.header.stamp = self.get_clock().now().to_msg()
         self._sst_input_PoseArray.header.frame_id = sst.header.frame_id
         self._sst_input_PoseArray.poses = []
 

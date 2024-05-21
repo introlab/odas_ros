@@ -171,7 +171,7 @@ class SslSocketServer(JsonSocketServer):
     def _handle_data(self, ssl: dict):
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
         odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
-        odas_ssl_array_stamped_msg.header.stamp = self._node.get_clock().now()
+        odas_ssl_array_stamped_msg.header.stamp = self._node.get_clock().now().to_msg()
         odas_ssl_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in ssl['src']:
@@ -194,7 +194,7 @@ class SstSocketServer(JsonSocketServer):
     def _handle_data(self, sst: dict):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
-        odas_sst_array_stamped_msg.header.stamp = self._node.get_clock().now()
+        odas_sst_array_stamped_msg.header.stamp = self._node.get_clock().now().to_msg()
         odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
         for source in sst['src']:
@@ -249,7 +249,7 @@ class SssSocketServer(SocketServer):
 
     def _get_timestamp(self):
         if self._audio_frame_timestamp_queue is None:
-            return self._node.get_clock().now()
+            return self._node.get_clock().now().to_msg()
         else:
             return self._audio_frame_timestamp_queue.get()
 

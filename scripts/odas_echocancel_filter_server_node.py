@@ -45,7 +45,7 @@ class OdasFilterEchocancelServerNode(OdasServerNode):
     def _send_empty_sst_array(self, sst):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
         odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
-        odas_sst_array_stamped_msg.header.stamp = self.get_clock().now()
+        odas_sst_array_stamped_msg.header.stamp = self.get_clock().now().to_msg()
         odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
         self._sst_pub.publish(odas_sst_array_stamped_msg)
