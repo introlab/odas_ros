@@ -74,6 +74,7 @@ install(PROGRAMS
 
 # Launch files
 install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME})
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
