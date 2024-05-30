@@ -154,16 +154,16 @@ class OdasVisualizationNode(rclpy.node.Node):
 
 def main():
     rclpy.init()
-
     odas_visualization_node = OdasVisualizationNode()
-    odas_visualization_node.run()
 
-    odas_visualization_node.destroy_node()
-    rclpy.shutdown()
+    try:
+        odas_visualization_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        odas_visualization_node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()

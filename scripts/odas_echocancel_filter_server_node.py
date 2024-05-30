@@ -53,16 +53,16 @@ class OdasFilterEchocancelServerNode(OdasServerNode):
 
 def main():
     rclpy.init()
-
     odas_server_node = OdasFilterEchocancelServerNode()
-    odas_server_node.run()
 
-    odas_server_node.destroy_node()
-    rclpy.shutdown()
+    try:
+        odas_server_node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        odas_server_node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    main()
