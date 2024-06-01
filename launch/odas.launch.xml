@@ -1,0 +1,44 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="configuration_path" default="$(find-pkg-share odas_ros)/config/configuration.cfg"/>
+  <arg name="frame_id" default="odas"/>
+  <arg name="visualization" default="true"/>
+  <arg name="rviz" default="false"/>
+  <arg name="rviz_cfg" default="-d $(find-pkg-share odas_ros)/config/rviz/odas_rviz.rviz"/>
+  <arg name="local" default="true" />
+  <arg name="force_publish_tf" default="false"/>
+  <arg name="use_echo_cancellation" default="false"/>
+  <arg name="echo_cancelled_signal_topic" default="ec_signal"/>
+
+  <arg name="output" default="log"/>
+
+  <!-- ODAS -->
+  <group ns="odas">
+    <node unless="$(var use_echo_cancellation)" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="$(var output)">
+      <param name="configuration_path" value="$(var configuration_path)"/>
+      <param name="frame_id" value="$(var frame_id)"/>
+    </node>
+    <node if="$(var use_echo_cancellation)" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(var output)">
+      <param name="configuration_path" value="$(var configuration_path)"/>
+      <param name="frame_id" value="$(var frame_id)"/>
+
+      <remap from="ec_signal" to="$(var echo_cancelled_signal_topic)"/>
+    </node>
+
+    <group if="$(var visualization)">
+      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="$(var output)">
+        <param name="configuration_path" value="$(var configuration_path)"/>
+      </node>
+
+      <!-- Position of frame ODAS relative to robot Base_link -->
+      <node if="$(eval arg('rviz') or arg('force_publish_tf'))" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
+
+      <!--Run Rviz-->
+      <node if="$(var rviz)" name="rviz" pkg="rviz" type="rviz" args="$(var rviz_cfg)"/>
+    </group>
+    <group unless="$(var visualization)">
+      <!-- Position of frame ODAS relative to robot Base_link -->
+      <node if="$(var force_publish_tf)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
+    </group>
+  </group>
+</launch>
