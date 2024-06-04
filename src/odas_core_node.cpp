@@ -2,18 +2,18 @@
 
 #include <string>
 
-//From odas demo client
+// From odas demo client
 extern "C"
 {
-    #include <odas.h>
-    #include <parameters.h>
-    #include <configs.h>
-    #include <objects.h>
-    #include <threads.h>
-    #include <profiler.h>
+#include <odas.h>
+#include <parameters.h>
+#include <configs.h>
+#include <objects.h>
+#include <threads.h>
+#include <profiler.h>
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
 
@@ -28,7 +28,6 @@ int main(int argc, char **argv)
     // +------------------------------------------------------+
 
 
-
     // +----------------------------------------------------------+
     // | Variables                                                |
     // +----------------------------------------------------------+
@@ -37,12 +36,12 @@ int main(int argc, char **argv)
     // +------------------------------------------------------+
     // | Objects                                              |
     // +------------------------------------------------------+
-    aobjects * aobjs = NULL;
+    aobjects* aobjs = NULL;
 
     // +------------------------------------------------------+
     // | Configurations                                       |
     // +------------------------------------------------------+
-    configs * cfgs = NULL;
+    configs* cfgs = NULL;
 
 
     // +--------------------------------------------------+
@@ -52,13 +51,11 @@ int main(int argc, char **argv)
     cfgs = configs_construct(configFile.c_str());
 
 
-
     // +--------------------------------------------------+
     // | Construct                                        |
     // +--------------------------------------------------+
     RCLCPP_INFO(node->get_logger(), "| + Initializing objects............. ");
     aobjs = aobjects_construct(cfgs);
-
 
 
     // +--------------------------------------------------+
@@ -70,7 +67,7 @@ int main(int argc, char **argv)
 
     RCLCPP_INFO(node->get_logger(), "| + ROS SPINNING................... ");
 
-    //Start ros loop
+    // Start ros loop
     rclcpp::spin(node);
 
     // +--------------------------------------------------+
@@ -78,7 +75,6 @@ int main(int argc, char **argv)
     // +--------------------------------------------------+
     RCLCPP_INFO(node->get_logger(), "| + Threads join.................. ");
     threads_multiple_join(aobjs);
-
 
 
     // +--------------------------------------------------+
