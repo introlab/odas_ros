@@ -31,7 +31,7 @@
       </node>
 
       <!-- Position of frame ODAS relative to robot Base_link -->
-      <node if="$(eval arg('rviz') or arg('force_publish_tf'))" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
+      <node if="$(eval '$(var rviz) or $(var force_publish_tf)')" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
 
       <!--Run Rviz-->
       <node if="$(var rviz)" name="rviz" pkg="rviz" type="rviz" args="$(var rviz_cfg)"/>
