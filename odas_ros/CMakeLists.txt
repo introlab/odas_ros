@@ -21,17 +21,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(odas_ros_msgs REQUIRED)
 find_package(audio_utils REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/OdasSsl.msg"
-  "msg/OdasSslArrayStamped.msg"
-  "msg/OdasSst.msg"
-  "msg/OdasSstArrayStamped.msg"
-  DEPENDENCIES std_msgs
-)
 
 add_subdirectory(src/odas)
 

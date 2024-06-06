@@ -13,7 +13,7 @@ import io
 import rclpy
 import rclpy.node
 
-from odas_ros.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
+from odas_ros_msgs.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
 from audio_utils.msg import AudioFrame
 
 

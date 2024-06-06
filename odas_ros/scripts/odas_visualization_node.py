@@ -11,7 +11,7 @@ import libconf
 import std_msgs.msg
 
 import sensor_msgs.point_cloud2 as pcl2
-from odas_ros.msg import OdasSstArrayStamped, OdasSslArrayStamped
+from odas_ros_msgs.msg import OdasSstArrayStamped, OdasSslArrayStamped
 from  geometry_msgs.msg import PoseArray, Pose
 from sensor_msgs.msg import PointCloud2, PointField
 
