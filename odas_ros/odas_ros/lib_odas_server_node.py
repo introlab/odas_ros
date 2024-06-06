@@ -14,7 +14,7 @@ import rclpy
 import rclpy.node
 
 from odas_ros_msgs.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArrayStamped
-from audio_utils.msg import AudioFrame
+from audio_utils_msgs.msg import AudioFrame
 
 
 AUDIO_QUEUE_SIZE = 100
