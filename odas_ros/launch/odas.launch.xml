@@ -13,12 +13,12 @@
   <arg name="output" default="log"/>
 
   <!-- ODAS -->
-  <group ns="odas">
-    <node unless="$(var use_echo_cancellation)" pkg="odas_ros" type="odas_server_node.py" name="odas_server_node" output="$(var output)">
+  <group>
+    <node unless="$(var use_echo_cancellation)" pkg="odas_ros" exec="odas_server_node.py" name="odas_server_node" output="$(var output)">
       <param name="configuration_path" value="$(var configuration_path)"/>
       <param name="frame_id" value="$(var frame_id)"/>
     </node>
-    <node if="$(var use_echo_cancellation)" pkg="odas_ros" type="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(var output)">
+    <node if="$(var use_echo_cancellation)" pkg="odas_ros" exec="odas_echocancel_filter_server_node.py" name="odas_server_node" output="$(var output)">
       <param name="configuration_path" value="$(var configuration_path)"/>
       <param name="frame_id" value="$(var frame_id)"/>
 
@@ -26,19 +26,19 @@
     </node>
 
     <group if="$(var visualization)">
-      <node pkg="odas_ros" type="odas_visualization_node.py" name="odas_visualization_node" output="$(var output)">
+      <node pkg="odas_ros" exec="odas_visualization_node.py" name="odas_visualization_node" output="$(var output)">
         <param name="configuration_path" value="$(var configuration_path)"/>
       </node>
 
       <!-- Position of frame ODAS relative to robot Base_link -->
-      <node if="$(eval '$(var rviz) or $(var force_publish_tf)')" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
+      <node if="$(eval '$(var rviz) or $(var force_publish_tf)')" pkg="tf" exec="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
 
       <!--Run Rviz-->
-      <node if="$(var rviz)" name="rviz" pkg="rviz" type="rviz" args="$(var rviz_cfg)"/>
+      <node if="$(var rviz)" name="rviz" pkg="rviz2" exec="rviz2" args="$(var rviz_cfg)"/>
     </group>
     <group unless="$(var visualization)">
       <!-- Position of frame ODAS relative to robot Base_link -->
-      <node if="$(var force_publish_tf)" pkg="tf" type="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id) 100" />
+      <node if="$(var force_publish_tf)" pkg="tf2_ros" exec="static_transform_publisher" name="odas_broadcaster" args="0 0 0 0 0 0 base_link $(var frame_id)" />
     </group>
   </group>
 </launch>

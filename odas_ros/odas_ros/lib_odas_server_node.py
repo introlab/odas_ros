@@ -170,7 +170,6 @@ class SslSocketServer(JsonSocketServer):
 
     def _handle_data(self, ssl: dict):
         odas_ssl_array_stamped_msg = OdasSslArrayStamped()
-        odas_ssl_array_stamped_msg.header.seq = ssl['timeStamp']
         odas_ssl_array_stamped_msg.header.stamp = self._node.get_clock().now().to_msg()
         odas_ssl_array_stamped_msg.header.frame_id = self._frame_id
 
@@ -193,7 +192,6 @@ class SstSocketServer(JsonSocketServer):
 
     def _handle_data(self, sst: dict):
         odas_sst_array_stamped_msg = OdasSstArrayStamped()
-        odas_sst_array_stamped_msg.header.seq = sst['timeStamp']
         odas_sst_array_stamped_msg.header.stamp = self._node.get_clock().now().to_msg()
         odas_sst_array_stamped_msg.header.frame_id = self._frame_id
 
@@ -340,16 +338,17 @@ class OdasServerNode(rclpy.node.Node):
             self.get_logger().info("Sound Source Separation socket server started")
 
         executable_args = ["ros2",
-                           "run"
+                           "launch",
                            "odas_ros",
-                           "odas_core_node",
+                           "odas_core_node.launch.xml",
                            "configuration_path:=" + self._configuration_path]
 
         odas_core_process = subprocess.Popen(executable_args, cwd=os.curdir)
 
-        rclpy.spin(self)
-
-        odas_core_process.terminate()
+        try:
+            rclpy.spin(self)
+        finally:
+            odas_core_process.terminate()
 
         if self._raw_socket_server:
             self._raw_socket_server.close()

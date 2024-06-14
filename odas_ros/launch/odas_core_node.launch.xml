@@ -1,0 +1,7 @@
+<launch>
+    <arg name="configuration_path" default="$(find-pkg-share odas_ros)/config/configuration.cfg"/>
+
+    <node pkg="odas_ros" exec="odas_core_node" name="odas_core_node">
+        <param name="configuration_path" value="$(var configuration_path)"/>
+    </node>
+</launch>
