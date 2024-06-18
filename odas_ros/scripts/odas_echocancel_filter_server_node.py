@@ -60,7 +60,8 @@ def main():
         pass
     finally:
         odas_server_node.destroy_node()
-        rclpy.shutdown()
+        
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
