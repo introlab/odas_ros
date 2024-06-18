@@ -3,6 +3,7 @@ import json
 import socket
 import threading
 import os
+import signal
 import subprocess
 import queue
 from typing import ByteString
@@ -131,7 +132,7 @@ class JsonSocketServer(SocketServer):
                     data = json.loads(message)
                     self._handle_data(data)
                 except Exception as e:
-                    self._node.get_logger().error(str(type(self)) + str(e) + 'message: ' + message + ' *** data: ' + data)
+                    self._node.get_logger().error(str(type(self)) + str(e) + 'message: ' + str(message) + ' *** data: ' + str(data))
                     continue
 
     def _split_json(self, data: str):
@@ -348,13 +349,14 @@ class OdasServerNode(rclpy.node.Node):
         try:
             rclpy.spin(self)
         finally:
-            odas_core_process.terminate()
+            if self._raw_socket_server:
+                self._raw_socket_server.close()
+            if self._ssl_socket_server:
+                self._ssl_socket_server.close()
+            if self._sst_socket_server:
+                self._sst_socket_server.close()
+            if self._sss_socket_server:
+                self._sss_socket_server.close()
 
-        if self._raw_socket_server:
-            self._raw_socket_server.close()
-        if self._ssl_socket_server:
-            self._ssl_socket_server.close()
-        if self._sst_socket_server:
-            self._sst_socket_server.close()
-        if self._sss_socket_server:
-            self._sss_socket_server.close()
+            odas_core_process.terminate()
+            odas_core_process.wait()
