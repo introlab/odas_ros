@@ -182,7 +182,8 @@ class SslSocketServer(JsonSocketServer):
             odas_ssl.e = source['E']
             odas_ssl_array_stamped_msg.sources.append(odas_ssl)
 
-        self._ssl_pub.publish(odas_ssl_array_stamped_msg)
+        if rclpy.ok():
+            self._ssl_pub.publish(odas_ssl_array_stamped_msg)
 
 
 class SstSocketServer(JsonSocketServer):
@@ -206,7 +207,8 @@ class SstSocketServer(JsonSocketServer):
                 odas_sst.activity = source['activity']
                 odas_sst_array_stamped_msg.sources.append(odas_sst)
 
-        self._sst_pub.publish(odas_sst_array_stamped_msg)
+        if rclpy.ok():
+            self._sst_pub.publish(odas_sst_array_stamped_msg)
 
 
 class SssSocketServer(SocketServer):
@@ -244,7 +246,9 @@ class SssSocketServer(SocketServer):
         audio_frame_msg.sampling_frequency = self._sss_sampling_frequency
         audio_frame_msg.frame_sample_count = self._sss_frame_sample_count
         audio_frame_msg.data = data
-        self._sss_pub.publish(audio_frame_msg)
+
+        if rclpy.ok():
+            self._sss_pub.publish(audio_frame_msg)
 
     def _get_timestamp(self):
         if self._audio_frame_timestamp_queue is None:
