@@ -6,7 +6,21 @@
 
 pactl set-default-sink $1
 
-LC_ALL=C pactl list sink-inputs | grep "Sink Input #" | while read line
+LC_ALL=C pactl list sink-inputs | awk '
+  /^Sink Input #/ {
+    if (input && driver != "module-echo-cancel.c") {
+      print input
+    }
+    input = substr($3, 2)
+    driver = ""
+  }
+  /Driver: / { driver = $2 }
+  END {
+    if (input && driver != "module-echo-cancel.c") {
+      print input
+    }
+  }
+' | while read number
 do
-    pactl move-sink-input `echo $line | cut -f2 -d'#'` $1 1> /dev/null
+    pactl move-sink-input $number $1 1> /dev/null
 done
