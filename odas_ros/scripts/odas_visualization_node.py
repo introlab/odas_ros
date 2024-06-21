@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import math
 
 import rclpy
@@ -10,7 +10,7 @@ import libconf
 
 import std_msgs.msg
 
-import sensor_msgs.point_cloud2 as pcl2
+import sensor_msgs_py.point_cloud2 as pcl2
 from odas_ros_msgs.msg import OdasSstArrayStamped, OdasSslArrayStamped
 from  geometry_msgs.msg import PoseArray, Pose
 from sensor_msgs.msg import PointCloud2, PointField
@@ -99,21 +99,28 @@ class OdasVisualizationNode(rclpy.node.Node):
         cloud_points = []
         for source in ssl.sources:
             # Extract xyz position of potential sound source on unit sphere from Sound Source Localization
-            point = [source.x, source.y, source.z, source.E]
+            point = [source.x, source.y, source.z, source.e]
             cloud_points.append(point)
         #header
         header = std_msgs.msg.Header()
         header.stamp = self.get_clock().now().to_msg()
         header.frame_id = ssl.header.frame_id
         #fields
-        fields = [ PointField('x', 0, PointField.FLOAT32, 1),
-                    PointField('y', 4, PointField.FLOAT32, 1),
-                    PointField('z', 8, PointField.FLOAT32, 1),
-                    PointField('intensity', 12, PointField.FLOAT32, 1)]
+        fields = [self._point_field('x', 0, PointField.FLOAT32, 1),
+                  self._point_field('y', 4, PointField.FLOAT32, 1),
+                  self._point_field('z', 8, PointField.FLOAT32, 1),
+                  self._point_field('intensity', 12, PointField.FLOAT32, 1)]
         #create pcl from points
-        pcl = pcl2.create_cloud(header,fields,cloud_points)
+        pcl = pcl2.create_cloud(header, fields, cloud_points)
         self._ssl_pcl_pub.publish(pcl)
 
+    def _point_field(self, name, offset, datatype, count):
+        msg = PointField()
+        msg.name = name
+        msg.offset = offset
+        msg.datatype = datatype
+        msg.count = count
+        return msg
 
     def _sst_cb(self, sst):
         # Sound Source Tracking Callback (ODAS)
@@ -126,9 +133,9 @@ class OdasVisualizationNode(rclpy.node.Node):
 
             # Update the SST PoseStamped
             _sst_input_Pose = Pose()
-            _sst_input_Pose.position.x = 0
-            _sst_input_Pose.position.y = 0
-            _sst_input_Pose.position.z = 0
+            _sst_input_Pose.position.x = 0.0
+            _sst_input_Pose.position.y = 0.0
+            _sst_input_Pose.position.z = 0.0
             _sst_input_Pose.orientation.x = q[0]
             _sst_input_Pose.orientation.y = q[1]
             _sst_input_Pose.orientation.z = q[2]
