@@ -23,17 +23,15 @@ find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(odas_ros_msgs REQUIRED)
 find_package(audio_utils_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 
 set(ODAS_INSTALL_EXECUTABLES OFF)
 set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF)
 set(ODAS_DISABLE_INSTALL ON)
 
-add_subdirectory(src/odas)
+add_subdirectory(src/odas SYSTEM)
 install(TARGETS odas LIBRARY DESTINATION lib)
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
+include_directories(SYSTEM
   src/odas/include
   src/odas/include/odas
   src/odas/demo/odaslive
