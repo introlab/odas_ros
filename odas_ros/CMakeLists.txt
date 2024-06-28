@@ -28,13 +28,12 @@ set(ODAS_INSTALL_EXECUTABLES OFF)
 set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF)
 set(ODAS_DISABLE_INSTALL ON)
 
-add_subdirectory(src/odas SYSTEM)
-install(TARGETS odas LIBRARY DESTINATION lib)
+add_subdirectory(src/odas)
 
-include_directories(SYSTEM
-  src/odas/include
-  src/odas/include/odas
-  src/odas/demo/odaslive
+ament_export_targets(export_odas_ros HAS_LIBRARY_TARGET)
+install(TARGETS odas
+  EXPORT export_odas_ros
+  LIBRARY DESTINATION lib
 )
 
 #Reuse base client demo files
@@ -53,6 +52,11 @@ ament_target_dependencies(odas_core_node rclcpp)
 target_link_libraries(odas_core_node odas)
 install(TARGETS odas_core_node DESTINATION lib/${PROJECT_NAME})
 
+target_include_directories(odas_core_node PRIVATE
+    src/odas/include
+    src/odas/include/odas
+    src/odas/demo/odaslive
+)
 
 # Python Nodes
 ament_python_install_package(${PROJECT_NAME})
