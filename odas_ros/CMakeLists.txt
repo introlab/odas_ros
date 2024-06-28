@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
+
+add_subdirectory(src/odas)
+
 project(odas_ros)
 
 
@@ -24,17 +27,13 @@ find_package(std_msgs REQUIRED)
 find_package(odas_ros_msgs REQUIRED)
 find_package(audio_utils_msgs REQUIRED)
 
+set(ODAS_BUILD_SHARED_LIBRARY OFF)
 set(ODAS_INSTALL_EXECUTABLES OFF)
 set(ODAS_FORCE_BIN_AND_LIB_DIRS OFF)
 set(ODAS_DISABLE_INSTALL ON)
 
-add_subdirectory(src/odas)
 
-ament_export_targets(export_odas_ros HAS_LIBRARY_TARGET)
-install(TARGETS odas
-  EXPORT export_odas_ros
-  LIBRARY DESTINATION lib
-)
+
 
 #Reuse base client demo files
 set(odas_shared_srcs
