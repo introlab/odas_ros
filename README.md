@@ -2,7 +2,7 @@
 
 This package is a ROS2 package for [ODAS](https://github.com/introlab/odas).
 
-For ROS1, please see the `main-ros1` branch.
+For ROS1, please see the `ros1` branch.
 
 [IntRoLab - Université de Sherbrooke](https://introlab.3it.usherbrooke.ca)
 
