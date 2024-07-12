@@ -72,8 +72,7 @@ Visualization Manager:
       Show Names: true
       Tree:
         base_link:
-          odas:
-            {}
+          odas: {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -142,8 +141,7 @@ Visualization Manager:
       Topic: /initialpose
       X std deviation: 0.5
       Y std deviation: 0.5
-    - Class: rviz_default_plugins/SetGoal
-      Topic: /move_base_simple/goal
+    - Class: nav2_rviz_plugins/GoalTool
     - Class: rviz_default_plugins/PublishPoint
       Single click: true
       Topic: /clicked_point
