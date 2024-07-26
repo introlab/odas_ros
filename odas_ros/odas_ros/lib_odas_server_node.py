@@ -18,7 +18,6 @@ from odas_ros_msgs.msg import OdasSst, OdasSstArrayStamped, OdasSsl, OdasSslArra
 from audio_utils_msgs.msg import AudioFrame
 
 
-AUDIO_QUEUE_SIZE = 100
 SSL_SST_QUEUE_SIZE = 10
 
 
@@ -73,7 +72,11 @@ class SocketServer(ABC):
 
 
 class RawSocketServer(SocketServer):
-    def __init__(self, node: rclpy.node.Node, configuration: dict, audio_frame_timestamp_queue: queue.Queue):
+    def __init__(self,
+                 node: rclpy.node.Node,
+                 configuration: dict,
+                 audio_frame_timestamp_queue: queue.Queue,
+                 audio_queue_size: int):
         super().__init__(node, configuration['raw']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
 
@@ -83,8 +86,8 @@ class RawSocketServer(SocketServer):
         self._raw_sampling_frequency = configuration['raw']['fS']
         self._raw_frame_sample_count = configuration['raw']['hopSize']
 
-        self._raw_queue = queue.Queue(maxsize=AUDIO_QUEUE_SIZE)
-        self._raw_sub = self._node.create_subscription(AudioFrame, 'raw', self._raw_audio_cb, AUDIO_QUEUE_SIZE)
+        self._raw_queue = queue.Queue(maxsize=audio_queue_size)
+        self._raw_sub = self._node.create_subscription(AudioFrame, 'raw', self._raw_audio_cb, audio_queue_size)
 
     def _raw_audio_cb(self, msg: AudioFrame):
         if (msg.format != self._raw_format or
@@ -212,7 +215,12 @@ class SstSocketServer(JsonSocketServer):
 
 
 class SssSocketServer(SocketServer):
-    def __init__(self, node: rclpy.node.Node, configuration: dict, audio_frame_timestamp_queue: queue.Queue, frame_id: str):
+    def __init__(self,
+                 node: rclpy.node.Node,
+                 configuration: dict,
+                 audio_frame_timestamp_queue: queue.Queue,
+                 frame_id: str,
+                 audio_queue_size: int):
         super().__init__(node, configuration['sss']['separated']['interface']['port'])
         self._audio_frame_timestamp_queue = audio_frame_timestamp_queue
         self._frame_id = frame_id
@@ -223,7 +231,7 @@ class SssSocketServer(SocketServer):
         self._sss_sampling_frequency = configuration['sss']['separated']['fS']
         self._sss_frame_sample_count = configuration['sss']['separated']['hopSize']
 
-        self._sss_pub = self._node.create_publisher(AudioFrame, 'sss', AUDIO_QUEUE_SIZE)
+        self._sss_pub = self._node.create_publisher(AudioFrame, 'sss', audio_queue_size)
 
     def _handle_client(self, client_socket: socket.socket):
         recv_size = recv_size = self._sss_nbits // 8 * self._sss_channel_count * self._sss_frame_sample_count
@@ -264,6 +272,7 @@ class OdasServerNode(rclpy.node.Node):
         self._configuration_path = self.declare_parameter('configuration_path', '').get_parameter_value().string_value
         self._configuration = self._load_configuration(self._configuration_path)
         frame_id = self.declare_parameter('frame_id', '').get_parameter_value().string_value
+        audio_queue_size = self.declare_parameter('audio_queue_size', 1).get_parameter_value().integer_value
 
         if self._verify_raw_and_sss_configuration():
             audio_frame_timestamp_queue = queue.Queue()
@@ -271,7 +280,10 @@ class OdasServerNode(rclpy.node.Node):
             audio_frame_timestamp_queue = None
 
         if self._verify_raw_configuration():
-            self._raw_socket_server = RawSocketServer(self, self._configuration, audio_frame_timestamp_queue)
+            self._raw_socket_server = RawSocketServer(self,
+                                                      self._configuration,
+                                                      audio_frame_timestamp_queue,
+                                                      audio_queue_size)
         else:
             self._raw_socket_server = None
 
@@ -286,7 +298,11 @@ class OdasServerNode(rclpy.node.Node):
             self._sst_socket_server = None
 
         if self._verify_sss_configuration():
-            self._sss_socket_server = SssSocketServer(self, self._configuration, audio_frame_timestamp_queue, frame_id)
+            self._sss_socket_server = SssSocketServer(self,
+                                                      self._configuration,
+                                                      audio_frame_timestamp_queue,
+                                                      frame_id,
+                                                      audio_queue_size)
         else:
             self._sss_socket_server = None
 
