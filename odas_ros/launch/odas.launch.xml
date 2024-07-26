@@ -2,6 +2,7 @@
   <!-- Arguments -->
   <arg name="configuration_path" default="$(find-pkg-share odas_ros)/config/configuration.cfg"/>
   <arg name="frame_id" default="odas"/>
+  <arg name="audio_queue_size" default="1"/>
   <arg name="visualization" default="true"/>
   <arg name="rviz" default="false"/>
   <arg name="rviz_cfg" default="-d $(find-pkg-share odas_ros)/config/rviz/odas_rviz.rviz"/>
@@ -15,10 +16,12 @@
     <node unless="$(var use_echo_cancellation)" pkg="odas_ros" exec="odas_server_node.py" name="odas_server_node">
       <param name="configuration_path" value="$(var configuration_path)"/>
       <param name="frame_id" value="$(var frame_id)"/>
+      <param name="audio_queue_size" value="$(var audio_queue_size)"/>
     </node>
     <node if="$(var use_echo_cancellation)" pkg="odas_ros" exec="odas_echocancel_filter_server_node.py" name="odas_server_node">
       <param name="configuration_path" value="$(var configuration_path)"/>
       <param name="frame_id" value="$(var frame_id)"/>
+      <param name="audio_queue_size" value="$(var audio_queue_size)"/>
 
       <remap from="ec_signal" to="$(var echo_cancelled_signal_topic)"/>
     </node>
