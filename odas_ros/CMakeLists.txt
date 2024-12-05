@@ -44,9 +44,17 @@ set(odas_shared_srcs
     src/odas/demo/odaslive/threads.c
 )
 
+# But through an object library to hide warnings from the ODAS code
+add_library(odas_shared_srcs_objlib OBJECT ${odas_shared_srcs})
+target_compile_options(odas_shared_srcs_objlib PRIVATE -w)
+target_include_directories(odas_shared_srcs_objlib PRIVATE
+    src/odas/include
+    src/odas/include/odas
+    src/odas/demo/odaslive
+)
 
 # C++ Nodes
-add_executable(odas_core_node src/odas_core_node.cpp ${odas_shared_srcs})
+add_executable(odas_core_node src/odas_core_node.cpp $<TARGET_OBJECTS:odas_shared_srcs_objlib>)
 ament_target_dependencies(odas_core_node rclcpp)
 target_link_libraries(odas_core_node odas)
 install(TARGETS odas_core_node DESTINATION lib/${PROJECT_NAME})
